@@ -11,6 +11,8 @@
 <meta name="theme-color" content="#14213D">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,7 +109,7 @@
   body.chiming:not(.full) .dial::before { background: var(--flash); }
   /* Wide landscape screens (iPad sideways, laptops): clock on the left stays
      still, settings scroll on the right. */
-  @media (orientation: landscape) and (min-width: 900px) {
+  @media (orientation: landscape) and (min-width: 600px) {
     body:not(.full) main {
       max-width: 66rem; display: grid; align-items: start;
       grid-template-columns: minmax(0, 1fr) 24rem; column-gap: 3rem; row-gap: 1.75rem;
@@ -121,6 +123,19 @@
     body:not(.full) .dial::before { display: none; }
     body:not(.full) .settings, body:not(.full) .note { grid-column: 2; max-width: none; }
     body:not(.full) .note { text-align: left; }
+  }
+  /* Phones turned sideways: tighter side-by-side layout that fits the short screen */
+  @media (orientation: landscape) and (min-width: 600px) and (max-height: 600px) {
+    body:not(.full) main {
+      grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem); column-gap: 1.5rem;
+      padding: 1rem max(1rem, env(safe-area-inset-right, 0px)) 1rem max(1rem, env(safe-area-inset-left, 0px));
+    }
+    body:not(.full) .clock-pane { gap: 1rem; top: calc(env(safe-area-inset-top, 0px) + 1rem); }
+    body:not(.full) .dial { width: min(40vw, calc(100vh - 8rem), 100%); }
+    body:not(.full) .time { font-size: calc(min(40vw, 100vh - 8rem) * .25); }
+    body:not(.full) .secs { font-size: calc(min(40vw, 100vh - 8rem) * .06); margin-top: .2rem; }
+    body:not(.full) .controls { gap: .5rem; flex-wrap: nowrap; }
+    body:not(.full) .controls button { padding: .55rem .9rem; font-size: .9rem; white-space: nowrap; }
   }
   /* Full-screen transition */
   .dial { view-transition-name: clock-dial; }
