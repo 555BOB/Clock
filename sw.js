@@ -1,25 +1,14 @@
-// Keeps Chime Clock working offline after the first visit.
-const CACHE = 'chime-clock-v3';
-const CORE = ['./', './index.html'];
-
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
-});
-
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
-    .then(() => self.clients.claim()));
-});
-
-// Try the network first so updates show up; fall back to the saved copy offline.
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(
-    fetch(e.request).then(res => {
-      const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
-      return res;
-    }).catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
-  );
+// Clean-up service worker.
+// An earlier version of the clock cached its files for offline use, which can
+// keep showing an old copy after updates. This version deletes those caches,
+// removes itself, and reloads open pages so they get the latest clock.
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    await self.registration.unregister();
+    const pages = await self.clients.matchAll({ type: 'window' });
+    pages.forEach(page => page.navigate(page.url));
+  })());
 });
