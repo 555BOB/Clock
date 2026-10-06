@@ -38,7 +38,8 @@
     --bg: #14213D; --ink: #EEF1F6; --muted: #8E99B3; --track: #26355A; --brass: #E0A526; --flash: #3A4A72;
   }
   *, *::before, *::after { box-sizing: inherit; }
-  html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+  html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); background: var(--bg); }
+  html.pic-bg { background: #000; }
   body {
     margin: 0; min-height: 100%;
     background: var(--bg); color: var(--ink);
@@ -82,7 +83,13 @@
 
   /* Custom background: picture or chosen colour */
   .backdrop {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    /* Reaches past every screen edge (including the iPad/iPhone home-bar strip
+       in full screen) so the picture zooms in to fill it rather than leaving a gap. */
+    position: fixed; z-index: 0; pointer-events: none;
+    top: calc(-1 * max(env(safe-area-inset-top, 0px), 3rem));
+    bottom: calc(-1 * max(env(safe-area-inset-bottom, 0px), 3rem));
+    left: calc(-1 * max(env(safe-area-inset-left, 0px), 1rem));
+    right: calc(-1 * max(env(safe-area-inset-right, 0px), 1rem));
     background-position: center; background-size: cover; background-repeat: no-repeat;
     display: none;
   }
@@ -97,7 +104,9 @@
   body:not(.full) .dial::before {
     content: ""; position: absolute; z-index: -1; pointer-events: none;
     left: 50%; width: 100vw; transform: translateX(-50%);
-    top: -3rem; bottom: -1rem;
+    /* Runs right up to the top edge of the screen, so settings scrolling up
+       behind the clock never show through under the status bar. */
+    top: calc(-.75rem - env(safe-area-inset-top, 0px) - 3rem); bottom: -1rem;
     background: var(--bg);
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1rem), transparent);
             mask-image: linear-gradient(to bottom, #000 calc(100% - 1rem), transparent);
@@ -1031,6 +1040,7 @@
     bd.style.backgroundImage = ''; bd.style.backgroundColor = ''; bd.style.removeProperty('--dim');
     document.body.classList.toggle('bg-colour', bgMode === 'colour');
     document.body.classList.toggle('bg-picture', bgMode === 'picture' && !!picData);
+    document.documentElement.classList.toggle('pic-bg', bgMode === 'picture' && !!picData);
     ['Theme', 'Colour', 'Picture'].forEach(n => $('bg' + n).setAttribute('aria-pressed', String(bgMode === n.toLowerCase())));
     $('colourPanel').hidden = bgMode !== 'colour';
     $('picturePanel').hidden = bgMode !== 'picture';
