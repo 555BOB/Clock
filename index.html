@@ -336,7 +336,7 @@
   .stepper button { width: 2.6rem; height: 2.6rem; padding: 0; font-size: 1.3rem; line-height: 1; }
   .stepper button:disabled { opacity: .3; cursor: default; }
   .stepper output { min-width: 4.8rem; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; }
-  .controls { display: flex; gap: .75rem; justify-content: center; width: 100%; max-width: 24rem; }
+  .controls { display: flex; gap: .75rem; justify-content: center; width: max-content; max-width: 100%; margin-left: auto; margin-right: auto; align-self: center; justify-self: center; }
   button {
     font: inherit; font-size: 1rem; font-weight: 500;
     padding: .8rem 1.4rem; border-radius: 999px; cursor: pointer;
@@ -347,10 +347,12 @@
   /* Chimes and Full screen: matching pair. Chimes off = outline like Full screen,
      with a grey light; chimes on = lit up in yellow. */
   #toggle, #fullBtn {
-    flex: 1 1 0; min-width: 0; white-space: nowrap; padding-left: .9rem; padding-right: .9rem;
+    white-space: nowrap; padding-left: .9rem; padding-right: .9rem;
     display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
     transition: background-color .2s ease, border-color .2s ease, color .2s ease;
   }
+  #toggle { width: 100%; }
+  #fullBtn { flex: none; min-width: 10.5rem; }
   #toggle::before {
     content: ""; flex: none; width: .65rem; height: .65rem; border-radius: 50%;
     background: var(--muted); transition: background-color .2s ease;
@@ -396,7 +398,6 @@
   </div>
 
   <div class="controls">
-    <button id="toggle" aria-pressed="false">Chimes are off</button>
     <button id="fullBtn">Full screen</button>
   </div>
   </div>
@@ -407,6 +408,7 @@
       <div class="row">
         <span class="row-label" id="slotsLabel">Chimes<small>Choose when to chime, and the sound for each</small></span>
       </div>
+      <button id="toggle" aria-pressed="false">Chimes are off</button>
       <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel"></div>
       <div class="row">
         <span class="row-label" id="earlyLabel">Chime early<small>Get a warning before meetings start</small></span>
@@ -480,7 +482,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour. Keep this page open — chimes only play while it’s on screen.</p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (b)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (d)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
