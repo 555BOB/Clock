@@ -322,7 +322,7 @@
   .stepper button { width: 2.6rem; height: 2.6rem; padding: 0; font-size: 1.3rem; line-height: 1; }
   .stepper button:disabled { opacity: .3; cursor: default; }
   .stepper output { min-width: 4.8rem; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; }
-  .controls { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; }
+  .controls { display: flex; gap: .75rem; justify-content: center; width: 100%; max-width: 24rem; }
   button {
     font: inherit; font-size: 1rem; font-weight: 500;
     padding: .8rem 1.4rem; border-radius: 999px; cursor: pointer;
@@ -333,7 +333,8 @@
   /* Chimes and Full screen: matching pair. Chimes off = outline like Full screen,
      with a grey light; chimes on = lit up in yellow. */
   #toggle, #fullBtn {
-    min-width: 9.5rem; display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+    flex: 1 1 0; min-width: 0; white-space: nowrap; padding-left: .9rem; padding-right: .9rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
     transition: background-color .2s ease, border-color .2s ease, color .2s ease;
   }
   #toggle::before {
@@ -381,7 +382,7 @@
   </div>
 
   <div class="controls">
-    <button id="toggle" aria-pressed="false">Chimes off</button>
+    <button id="toggle" aria-pressed="false">Chimes are off</button>
     <button id="fullBtn">Full screen</button>
   </div>
   </div>
@@ -465,7 +466,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour. Keep this page open — chimes only play while it’s on screen.</p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 7 Oct 2026</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 7 Oct 2026 (c)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -782,7 +783,7 @@
   async function setOn(value) {
     on = value;
     audio();
-    $('toggle').textContent = on ? 'Chimes on' : 'Chimes off';
+    $('toggle').textContent = on ? 'Chimes are on' : 'Chimes are off';
     $('toggle').setAttribute('aria-pressed', String(on));
     if (on) { lastKey = currentKey(chimeTime(new Date())); keepAwake(); }
     else if (wakeLock) { try { await wakeLock.release(); } catch (e) {} wakeLock = null; }
@@ -948,6 +949,32 @@
     if (meta) meta.setAttribute('content', '#14213D');
   }
 
+
+  // Safari paints the strip by the home bar (iPad full screen) in the page's
+  // theme colour, outside the page itself. With a picture in full screen, make
+  // that strip black so it blends into the photo instead of showing navy.
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  let metaLock = false;
+  function fixStrip() {
+    if (!metaTheme || metaLock) return;
+    const b = document.body.classList;
+    if (b.contains('full') && b.contains('bg-picture')) {
+      if (metaTheme.getAttribute('content') !== '#000000') {
+        metaTheme.dataset.normal = metaTheme.getAttribute('content');
+        metaLock = true; metaTheme.setAttribute('content', '#000000'); metaLock = false;
+      }
+    } else if (metaTheme.dataset.normal) {
+      metaLock = true; metaTheme.setAttribute('content', metaTheme.dataset.normal); metaLock = false;
+      delete metaTheme.dataset.normal;
+    }
+  }
+  new MutationObserver(fixStrip).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  if (metaTheme) new MutationObserver(() => {
+    if (metaLock) return;
+    // Something else set a new colour: remember it, then re-apply the full-screen rule.
+    if (metaTheme.getAttribute('content') !== '#000000') delete metaTheme.dataset.normal;
+    fixStrip();
+  }).observe(metaTheme, { attributes: true, attributeFilter: ['content'] });
 
   // ---------- Background: theme, chosen colour, or picture ----------
   let bgMode = store.get('bgMode', 'theme');
