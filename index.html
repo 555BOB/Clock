@@ -19,12 +19,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #EEF1F6;
-    --ink: #14213D;
-    --muted: #6B7690;
-    --track: #D5DBE6;
-    --brass: #B8860B;
-    --flash: #F5C542;
+    --bg: #14213D;
+    --ink: #EEF1F6;
+    --muted: #8E99B3;
+    --track: #26355A;
+    --brass: #E0A526;
+    --flash: #3A4A72;
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -49,7 +49,7 @@
   }
   body.chiming { background: var(--flash); transition: background-color .08s; }
   main {
-    width: 100%; max-width: 30rem; padding: 1.5rem;
+    width: 100%; max-width: 30rem; padding: 1.5rem .75rem;
     display: flex; flex-direction: column; align-items: center; gap: 1.75rem;
   }
   .dial { position: relative; width: min(82vw, 22rem); aspect-ratio: 1; }
@@ -121,7 +121,7 @@
   @media (orientation: landscape) and (min-width: 600px) {
     body:not(.full) main {
       max-width: 66rem; display: grid; align-items: start;
-      grid-template-columns: minmax(0, 1fr) 24rem; column-gap: 3rem; row-gap: 1.75rem;
+      grid-template-columns: minmax(0, 1fr) 26rem; column-gap: 3rem; row-gap: 1.75rem;
     }
     body:not(.full) .clock-pane {
       display: flex; flex-direction: column; align-items: center; gap: 1.75rem;
@@ -268,7 +268,7 @@
   .secs { font-size: 1.25rem; font-weight: 300; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: .4rem; }
   body.no-secs .secs, body.no-secs .arc { display: none; }
   .settings {
-    width: 100%; max-width: 22rem;
+    width: 100%; max-width: 25rem;
     display: flex; flex-direction: column; gap: 1rem;
   }
   .group {
@@ -277,9 +277,10 @@
   }
   .group-title {
     margin: 0 0 -.25rem; font-size: .78rem; font-weight: 700; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--brass);
+    text-transform: uppercase; color: var(--brass); text-align: center;
   }
   .group .slot { border-width: 1.5px; }
+  @media (max-width: 400px) { .group { padding-left: .75rem; padding-right: .75rem; } }
   @media (max-width: 420px) { .group .seg button { padding: .45rem .6rem; font-size: .9rem; } }
   .hours-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
   .sound-pick { display: flex; align-items: center; gap: .5rem; }
@@ -327,6 +328,22 @@
   }
   button.primary { background: var(--ink); color: var(--bg); }
   button:focus-visible { outline: 3px solid var(--brass); outline-offset: 3px; }
+  /* Chimes and Full screen: matching pair. Chimes off = outline like Full screen,
+     with a grey light; chimes on = lit up in yellow. */
+  #toggle, #fullBtn {
+    min-width: 9.5rem; display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+  }
+  #toggle::before {
+    content: ""; flex: none; width: .65rem; height: .65rem; border-radius: 50%;
+    background: var(--muted); transition: background-color .2s ease;
+  }
+  #toggle[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: var(--bg); }
+  #toggle[aria-pressed="true"]::before { background: var(--bg); }
+  #fullBtn::before {
+    content: ""; flex: none; width: .75rem; height: .75rem;
+    border: 2px solid currentColor; border-radius: 2px;
+  }
   .note { font-size: .9rem; color: var(--muted); text-align: center; max-width: 24rem; line-height: 1.5; margin: 0; }
   @media (prefers-reduced-motion: reduce) {
     .arc, body, .switch::after { transition: none; }
@@ -362,7 +379,7 @@
   </div>
 
   <div class="controls">
-    <button class="primary" id="toggle" aria-pressed="false">Turn on chimes</button>
+    <button id="toggle" aria-pressed="false">Chimes off</button>
     <button id="fullBtn">Full screen</button>
   </div>
   </div>
@@ -371,6 +388,10 @@
     <section class="group" aria-labelledby="gSound">
       <h2 class="group-title" id="gSound">Sound</h2>
       <div class="row">
+        <span class="row-label" id="slotsLabel">Chimes<small>Choose when to chime, and the sound for each</small></span>
+      </div>
+      <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel"></div>
+      <div class="row">
         <span class="row-label" id="earlyLabel">Chime early<small>Get a warning before meetings start</small></span>
         <div class="stepper" role="group" aria-labelledby="earlyLabel">
           <button id="earlyLess" aria-label="10 seconds less">−</button>
@@ -378,10 +399,6 @@
           <button id="earlyMore" aria-label="10 seconds more">+</button>
         </div>
       </div>
-      <div class="row">
-        <span class="row-label" id="slotsLabel">Chimes<small>Choose when to chime, and the sound for each</small></span>
-      </div>
-      <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel"></div>
     </section>
     <section class="group" aria-labelledby="gAppearance">
       <h2 class="group-title" id="gAppearance">Appearance</h2>
@@ -394,28 +411,6 @@
         <div class="seg" role="group" aria-labelledby="styleLabel">
           <button id="styleDigital" aria-pressed="true">Digital</button>
           <button id="styleAnalog" aria-pressed="false">Analogue</button>
-        </div>
-      </div>
-      <div class="row">
-        <span class="row-label" id="shapeLabel">Clock shape</span>
-        <div class="seg" role="group" aria-labelledby="shapeLabel">
-          <button id="shapeRound" aria-pressed="true">Round</button>
-          <button id="shapeSquare" aria-pressed="false">Square</button>
-        </div>
-      </div>
-      <div class="row">
-        <span class="row-label" id="secStyleLabel">Seconds style<small>Dashes light up one by one</small></span>
-        <div class="seg" role="group" aria-labelledby="secStyleLabel">
-          <button id="secRing" aria-pressed="true">Ring</button>
-          <button id="secDashes" aria-pressed="false">Dashes</button>
-        </div>
-      </div>
-      <div class="row">
-        <span class="row-label" id="themeLabel">Light or dark</span>
-        <div class="seg" role="group" aria-labelledby="themeLabel">
-          <button id="themeAuto" aria-pressed="true" title="Follow your device's light or dark setting">System</button>
-          <button id="themeLight" aria-pressed="false">Day</button>
-          <button id="themeDark" aria-pressed="false">Dark</button>
         </div>
       </div>
       <div class="row">
@@ -445,10 +440,6 @@
           <input type="range" id="dimRange" min="0" max="80" step="5" value="35" aria-labelledby="dimLabel">
         </div>
         <p class="small-note" id="picNote">Pick a photo from your device. Dim it so the clock stays easy to read.</p>
-      </div>
-      <div class="row">
-        <span class="row-label" id="shiftLabel">Screen burn protection<small>Very slowly drifts everything by a few pixels</small></span>
-        <button class="switch" id="shiftSwitch" role="switch" aria-checked="true" aria-labelledby="shiftLabel"></button>
       </div>
     </section>
     <section class="group" aria-labelledby="gHours">
@@ -508,8 +499,7 @@
   let showSecs = store.get('showSecs', true);
   let analog = store.get('analog', false);
   let early = Math.min(120, Math.max(0, store.get('earlySecs', 0)));
-  let theme = store.get('theme', 'auto');
-  if (!['auto', 'light', 'dark'].includes(theme)) theme = 'auto';
+  const theme = 'dark';                    // always the dark colours; no setting in the menu
 
   const pad = n => String(n).padStart(2, '0');
 
@@ -789,7 +779,7 @@
   async function setOn(value) {
     on = value;
     audio();
-    $('toggle').textContent = on ? 'Turn off chimes' : 'Turn on chimes';
+    $('toggle').textContent = on ? 'Chimes on' : 'Chimes off';
     $('toggle').setAttribute('aria-pressed', String(on));
     if (on) { lastKey = currentKey(chimeTime(new Date())); keepAwake(); }
     else if (wakeLock) { try { await wakeLock.release(); } catch (e) {} wakeLock = null; }
@@ -813,10 +803,8 @@
   });
 
   // ---------- Clock shape (round or square) and seconds style (ring or dashes) ----------
-  let shape = store.get('shape', 'round');
-  if (!['round', 'square'].includes(shape)) shape = 'round';
-  let secStyle = store.get('secStyle', 'ring');
-  if (!['ring', 'dashes'].includes(secStyle)) secStyle = 'ring';
+  const shape = 'square';                  // always square; no setting in the menu
+  const secStyle = 'dashes';               // always dashes; no setting in the menu
   const NS = 'http://www.w3.org/2000/svg';
   const H = 92, CR = 24;   // half-size of the dial outline, and the square's corner radius
 
@@ -864,10 +852,6 @@
       radial(dashEls[i], a, edge(a, 4), edge(a, major ? -4 : -2));
     }
     document.body.classList.toggle('sec-dashes', secStyle === 'dashes');
-    $('shapeRound').setAttribute('aria-pressed', String(shape === 'round'));
-    $('shapeSquare').setAttribute('aria-pressed', String(shape === 'square'));
-    $('secRing').setAttribute('aria-pressed', String(secStyle === 'ring'));
-    $('secDashes').setAttribute('aria-pressed', String(secStyle === 'dashes'));
     lastLit = -2; lightDashes();
   }
   // Light one dash per second; all reset at the top of the minute.
@@ -882,10 +866,6 @@
       dashEls[i].classList.toggle('lit', onNow);
     }
   }
-  $('shapeRound').addEventListener('click', () => { shape = 'round'; store.set('shape', shape); drawShape(); });
-  $('shapeSquare').addEventListener('click', () => { shape = 'square'; store.set('shape', shape); drawShape(); });
-  $('secRing').addEventListener('click', () => { secStyle = 'ring'; store.set('secStyle', secStyle); drawShape(); });
-  $('secDashes').addEventListener('click', () => { secStyle = 'dashes'; store.set('secStyle', secStyle); drawShape(); });
   drawShape();
 
   function drawHands() {
@@ -958,27 +938,11 @@
   }));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') exitFull(); });
 
-  // Appearance: follow the device's light/dark setting, or force day or dark.
-  const darkQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  // Appearance: always the dark colours.
   function applyTheme() {
-    const root = document.documentElement;
-    if (theme === 'auto') root.removeAttribute('data-theme');
-    else root.setAttribute('data-theme', theme);
-    $('themeAuto').setAttribute('aria-pressed', String(theme === 'auto'));
-    $('themeLight').setAttribute('aria-pressed', String(theme === 'light'));
-    $('themeDark').setAttribute('aria-pressed', String(theme === 'dark'));
-    const isDark = theme === 'dark' || (theme === 'auto' && darkQuery && darkQuery.matches);
+    document.documentElement.setAttribute('data-theme', 'dark');
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', isDark ? '#14213D' : '#EEF1F6');
-  }
-  function setTheme(t) { theme = t; store.set('theme', t); if (bgMode !== 'theme') { bgMode = 'theme'; store.set('bgMode', 'theme'); } applyTheme(); if (typeof applyBg === 'function') applyBg(); }
-  $('themeAuto').addEventListener('click', () => setTheme('auto'));
-  $('themeLight').addEventListener('click', () => setTheme('light'));
-  $('themeDark').addEventListener('click', () => setTheme('dark'));
-  if (darkQuery) {
-    const onSys = () => { if (theme === 'auto' && bgMode === 'theme') applyTheme(); };
-    if (darkQuery.addEventListener) darkQuery.addEventListener('change', onSys);
-    else if (darkQuery.addListener) darkQuery.addListener(onSys);
+    if (meta) meta.setAttribute('content', '#14213D');
   }
 
 
@@ -1139,7 +1103,7 @@
   // Content wanders along a slow, looping path within a few pixels of centre.
   // Positions are whole pixels and change at most 1px at a time, every few
   // seconds, so the movement can't be seen and text stays sharp.
-  let shiftOn = store.get('shiftOn', true);
+  const shiftOn = true;                    // always on; no setting in the menu
   const SHIFT = 6;                         // max distance from centre, px
   const PX = 17 * 60, PY = 23 * 60;        // seconds for one sweep on each axis
   function shiftStep() {
@@ -1155,10 +1119,8 @@
   }
   function applyShift() {
     document.body.classList.toggle('no-shift', !shiftOn);
-    $('shiftSwitch').setAttribute('aria-checked', String(shiftOn));
     shiftStep();
   }
-  $('shiftSwitch').addEventListener('click', () => { shiftOn = !shiftOn; store.set('shiftOn', shiftOn); applyShift(); });
   setInterval(shiftStep, 5000);
 
   // ---------- Working hours and days ----------
