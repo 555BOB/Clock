@@ -265,6 +265,18 @@
     font-size: clamp(3.4rem, 17vw, 5.2rem); font-weight: 700;
     font-variant-numeric: tabular-nums; letter-spacing: -0.03em; line-height: 1;
   }
+  .time { position: relative; display: flex; align-items: baseline; }
+  /* Colon set like Apple's clock: a little air either side, lifted to sit
+     centred on the digits rather than on the baseline. */
+  .time .colon { margin: 0 .045em; position: relative; top: -.075em; }
+  /* Day and date: small, spaced capitals sitting just above the time. */
+  .time .date {
+    position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    margin-bottom: .9em; white-space: nowrap;
+    font-size: .13em; font-weight: 500; line-height: 1;
+    letter-spacing: .24em; padding-left: .24em; text-transform: uppercase;
+    color: var(--muted); font-variant-numeric: normal;
+  }
   .secs { font-size: 1.25rem; font-weight: 300; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: .4rem; }
   body.no-secs .secs, body.no-secs .arc { display: none; }
   /* The dashes already count the seconds, so the seconds number is never shown. */
@@ -291,7 +303,7 @@
   .slot-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   .slot .sound-pick .pick { flex: 1; min-width: 0; }
   .slot.off .sound-pick { opacity: .4; }
-  .test-btn { padding: .45rem .9rem; font-size: .95rem; }
+  .test-btn { font-size: .9rem; line-height: 1; }
   .pick, .hours-row select {
     font: inherit; font-size: 1rem; padding: .45rem .6rem; border-radius: .6rem;
     border: 2px solid var(--ink); background: transparent; color: var(--ink);
@@ -307,17 +319,19 @@
   .row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   .row-label { font-size: 1rem; }
   .row-label small { display: block; color: var(--muted); font-size: .85rem; margin-top: .15rem; }
-  .switch {
-    width: 3.2rem; height: 1.9rem; padding: 0; flex: none; position: relative;
+  /* On/off switch and Test button share one size and shape. */
+  .switch, .test-btn {
+    box-sizing: border-box; width: 3.8rem; height: 2.1rem; padding: 0; flex: none; position: relative;
     border-radius: 999px; border: 2px solid var(--ink);
+    display: inline-flex; align-items: center; justify-content: center;
   }
   .switch::after {
-    content: ""; position: absolute; top: .2rem; left: .2rem;
-    width: 1.2rem; height: 1.2rem; border-radius: 50%; background: var(--ink);
+    content: ""; position: absolute; top: calc(50% - .65rem); left: .25rem;
+    width: 1.3rem; height: 1.3rem; border-radius: 50%; background: var(--ink);
     transition: transform .15s ease;
   }
   .switch[aria-checked="true"] { background: var(--ink); }
-  .switch[aria-checked="true"]::after { background: var(--bg); transform: translateX(1.3rem); }
+  .switch[aria-checked="true"]::after { background: var(--bg); transform: translateX(1.75rem); }
   .stepper { display: flex; align-items: center; gap: .5rem; flex: none; }
   .stepper button { width: 2.6rem; height: 2.6rem; padding: 0; font-size: 1.3rem; line-height: 1; }
   .stepper button:disabled { opacity: .3; cursor: default; }
@@ -376,7 +390,7 @@
       <circle class="hub-in" cx="100" cy="100" r="1.8"/>
     </svg>
     <div class="face">
-      <div class="time" id="time">--:--</div>
+      <div class="time" id="time"><span class="date" id="date"></span><span id="hh">--</span><span class="colon">:</span><span id="mm">--</span></div>
       <div class="secs" id="secs">--</div>
     </div>
   </div>
@@ -412,8 +426,8 @@
       <div class="row">
         <span class="row-label" id="styleLabel">Clock style</span>
         <div class="seg" role="group" aria-labelledby="styleLabel">
-          <button id="styleDigital" aria-pressed="true">Digital</button>
-          <button id="styleAnalog" aria-pressed="false">Analogue</button>
+          <button id="styleAnalog" aria-pressed="true">Analogue</button>
+          <button id="styleDigital" aria-pressed="false">Digital</button>
         </div>
       </div>
       <div class="row">
@@ -466,7 +480,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour. Keep this page open — chimes only play while it’s on screen.</p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 7 Oct 2026 (c)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (b)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -501,7 +515,7 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
   let showSecs = store.get('showSecs', true);
-  let analog = store.get('analog', false);
+  let analog = store.get('analog', true);
   let early = Math.min(120, Math.max(0, store.get('earlySecs', 0)));
   const theme = 'dark';                    // always the dark colours; no setting in the menu
 
@@ -978,6 +992,7 @@
 
   // ---------- Background: theme, chosen colour, or picture ----------
   let bgMode = store.get('bgMode', 'theme');
+  let colourOpen = false, colourTimer = null;   // colour palette shown?
   if (!['theme', 'colour', 'picture'].includes(bgMode)) bgMode = 'theme';
   let bgColour = store.get('bgColour', '#2E6F95');
   let dim = store.get('bgDim', 35);
@@ -1036,7 +1051,7 @@
     document.body.classList.toggle('bg-picture', bgMode === 'picture' && !!picData);
     document.documentElement.classList.toggle('pic-bg', bgMode === 'picture' && !!picData);
     ['Theme', 'Colour', 'Picture'].forEach(n => $('bg' + n).setAttribute('aria-pressed', String(bgMode === n.toLowerCase())));
-    $('colourPanel').hidden = bgMode !== 'colour';
+    $('colourPanel').hidden = bgMode !== 'colour' || !colourOpen;
     $('picturePanel').hidden = bgMode !== 'picture';
     $('picRemove').disabled = !picData;
     $('picChoose').textContent = picData ? 'Change picture' : 'Choose picture';
@@ -1070,6 +1085,7 @@
     }
   }
   function setBgMode(m) {
+    if (m !== 'colour') { colourOpen = false; clearTimeout(colourTimer); }
     bgMode = m; store.set('bgMode', m); applyBg();
     if (m === 'picture' && !picData) $('picFile').click();
   }
@@ -1078,7 +1094,23 @@
     bgColour = hex.toUpperCase(); store.set('bgColour', bgColour); applyBg();
   }
   $('bgTheme').addEventListener('click', () => setBgMode('theme'));
-  $('bgColour').addEventListener('click', () => setBgMode('colour'));
+  // The palette opens when Colour is tapped, closes if Colour is tapped again,
+  // and tucks itself away after 5 seconds without a colour being picked.
+  function closeColour() { clearTimeout(colourTimer); colourOpen = false; applyBg(); }
+  function nudgeColour() {
+    clearTimeout(colourTimer);
+    if (!colourOpen) return;
+    colourTimer = setTimeout(() => {
+      if (document.activeElement === $('colourHex')) nudgeColour(); // still typing a code
+      else closeColour();
+    }, 5000);
+  }
+  $('bgColour').addEventListener('click', () => {
+    if (bgMode === 'colour' && colourOpen) { closeColour(); return; }
+    colourOpen = true; setBgMode('colour'); nudgeColour();
+  });
+  ['pointerdown', 'input', 'change', 'keydown', 'focusin'].forEach(ev =>
+    $('colourPanel').addEventListener(ev, nudgeColour));
   $('bgPicture').addEventListener('click', () => setBgMode('picture'));
   $('colourPick').addEventListener('input', e => setColour(e.target.value));
   $('colourHex').addEventListener('change', e => {
@@ -1246,7 +1278,10 @@
       box.querySelector('select').value = slots[k].type;
     });
     const onList = SLOTS.filter(k => slots[k].on).map(k => ({ 0: 'on the hour', 15: 'at quarter past', 30: 'at half past', 45: 'at quarter to' })[k]);
-    const what = onList.length ? 'Chimes ' + (onList.length > 1 ? onList.slice(0, -1).join(', ') + ' and ' + onList[onList.length - 1] : onList[0]) + '.' : 'All chime points are switched off.';
+    // Written without commas: "Chimes on the hour and at quarter past and half past."
+    const joined = onList.map((t, i) => (i > 0 && onList[i - 1].startsWith('at ') ? t.replace(/^at /, '') : t)).join(' and ');
+    const what = onList.length === 4 ? 'Chimes every quarter hour.'
+      : onList.length ? 'Chimes ' + joined + '.' : 'All chime points are switched off.';
     $('note').textContent = what + ' Keep this page open — chimes only play while it’s on screen.';
   }
   // Build the chosen sounds ahead of time so chimes start instantly.
@@ -1337,7 +1372,9 @@
   function tick() {
     const d = new Date();
     const h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
-    $('time').textContent = `${pad(h)}:${pad(m)}`;
+    $('hh').textContent = pad(h); $('mm').textContent = pad(m);
+    const dateText = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }).replace(',', '');
+    if ($('date').textContent !== dateText) $('date').textContent = dateText;
     $('secs').textContent = pad(s);
 
     const intoMinute = (s + d.getMilliseconds() / 1000) / 60;
