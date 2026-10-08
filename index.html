@@ -363,21 +363,15 @@
   }
   button.primary { background: var(--ink); color: var(--bg); }
   button:focus-visible { outline: 3px solid var(--brass); outline-offset: 3px; }
-  /* Chimes and Full screen: matching pair. Chimes off = outline like Full screen,
-     with a grey light; chimes on = lit up in yellow. */
-  #toggle, #fullBtn {
+  /* Full screen button: outline with a small square icon. */
+  #fullBtn {
     white-space: nowrap; padding-left: .9rem; padding-right: .9rem;
     display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
     transition: background-color .2s ease, border-color .2s ease, color .2s ease;
   }
-  #toggle { width: 100%; }
   #fullBtn { flex: none; min-width: 10.5rem; }
-  #toggle::before {
-    content: ""; flex: none; width: .65rem; height: .65rem; border-radius: 50%;
-    background: var(--muted); transition: background-color .2s ease;
-  }
-  #toggle[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: var(--bg); }
-  #toggle[aria-pressed="true"]::before { background: var(--bg); }
+  /* Main chimes switch: same iPhone-style switch, but lit in yellow when on. */
+  #toggle[aria-checked="true"] { background: var(--brass); }
   #fullBtn::before {
     content: ""; flex: none; width: .75rem; height: .75rem;
     border: 2px solid currentColor; border-radius: 2px;
@@ -450,9 +444,9 @@
     <section class="group" aria-labelledby="gSound">
       <h2 class="group-title" id="gSound">Sound</h2>
       <div class="row">
-        <span class="row-label" id="slotsLabel"><small style="margin-top:0">Choose when to chime and the sound for each</small></span>
+        <span class="row-label" id="chimesLabel"><span id="chimesState">Chimes are off</span><small id="slotsLabel">Choose when to chime and the sound for each</small></span>
+        <button class="switch" id="toggle" role="switch" aria-checked="false" aria-labelledby="chimesLabel"></button>
       </div>
-      <button id="toggle" aria-pressed="false">Chimes are off</button>
       <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel" hidden></div>
       <div class="row" id="earlyRow" hidden>
         <span class="row-label" id="earlyLabel">Chime earlier<small>Get a warning before meetings start</small></span>
@@ -526,7 +520,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Keep this page open — chimes only play while it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (p)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (q)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -843,8 +837,8 @@
   async function setOn(value) {
     on = value;
     audio();
-    $('toggle').textContent = on ? 'Chimes are on' : 'Chimes are off';
-    $('toggle').setAttribute('aria-pressed', String(on));
+    $('chimesState').textContent = on ? 'Chimes are on' : 'Chimes are off';
+    $('toggle').setAttribute('aria-checked', String(on));
     slidePanel($('slots'), on);   // chime boxes show only while chimes are on
     slidePanel($('earlyRow'), on); // and so does Chime earlier
     applySlots();                  // refresh the summary at the bottom
