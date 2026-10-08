@@ -352,6 +352,9 @@
   .switch:active::after { width: 2.05rem; }
   .switch[aria-checked="true"]:active::after { transform: translateX(.9rem); }
   .stepper { display: flex; align-items: center; gap: .5rem; flex: none; }
+  /* Chime earlier: description stays on one line; the − / + control sits underneath on narrow phones. */
+  #earlyRow { flex-wrap: wrap; row-gap: .6rem; }
+  #earlyRow .stepper { margin-left: auto; }
   .stepper button { width: 2.6rem; height: 2.6rem; padding: 0; font-size: 1.3rem; line-height: 1; }
   .stepper button:disabled { opacity: .3; cursor: default; }
   .stepper output { min-width: 4.8rem; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; }
@@ -454,7 +457,7 @@
       <p class="slots-hint" id="slotsLabel" hidden>Choose when to chime and the sound for each</p>
       <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel" hidden></div>
       <div class="row" id="earlyRow" hidden>
-        <span class="row-label" id="earlyLabel">Chime earlier<small>Get a warning before meetings start</small></span>
+        <span class="row-label" id="earlyLabel">Chime earlier<small style="white-space:nowrap">Chime before the actual time</small></span>
         <div class="stepper" role="group" aria-labelledby="earlyLabel">
           <button id="earlyLess" aria-label="10 seconds less">−</button>
           <output id="earlyValue" aria-live="polite">On time</output>
@@ -525,7 +528,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Keep this page open — chimes only play while it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (u)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (x)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
