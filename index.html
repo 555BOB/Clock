@@ -73,6 +73,10 @@
   .analog .hand { stroke: var(--ink); stroke-linecap: round; }
   .analog .sec { stroke: var(--brass); stroke-width: 1.6; stroke-linecap: round; }
   .analog .hub { fill: var(--brass); }
+  .analog .day-date text { fill: #14213D; font-variant-numeric: tabular-nums; }
+  .analog #dwDay { font-size: 6.4px; font-weight: 600; letter-spacing: .55px; }
+  .analog #dwNum { font-size: 8.6px; font-weight: 700; }
+  .analog .day-date.sun #dwDay, .analog .day-date.sun #dwNum { fill: #A3242B; }
   .analog .hub-in { fill: var(--bg); }
   body:not(.analog-mode) .analog { display: none; }
   body.analog-mode .face, body.analog-mode .arc { display: none; }
@@ -385,6 +389,31 @@
     </svg>
     <svg class="analog" id="analog" viewBox="0 0 200 200" role="img" aria-label="Analogue clock">
       <g id="ticks"></g>
+      <!-- Day-date window at 3 o'clock, in the style of a fine watch -->
+      <defs>
+        <linearGradient id="dwFrame" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#F7DE9C"/><stop offset=".45" stop-color="#D9A632"/>
+          <stop offset=".55" stop-color="#B8861C"/><stop offset="1" stop-color="#F0CF7A"/>
+        </linearGradient>
+        <linearGradient id="dwFace" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#DCD6C8"/><stop offset=".18" stop-color="#F7F4EC"/>
+          <stop offset="1" stop-color="#EFEADD"/>
+        </linearGradient>
+        <linearGradient id="dwGloss" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#FFFFFF" stop-opacity=".55"/><stop offset=".5" stop-color="#FFFFFF" stop-opacity="0"/>
+        </linearGradient>
+        <filter id="dwShadow" x="-20%" y="-30%" width="140%" height="170%">
+          <feDropShadow dx="0" dy=".6" stdDeviation=".8" flood-color="#000" flood-opacity=".45"/>
+        </filter>
+      </defs>
+      <g class="day-date" aria-hidden="true">
+        <rect x="121" y="92" width="41" height="16" rx="2.6" fill="url(#dwFrame)" filter="url(#dwShadow)"/>
+        <rect x="122.1" y="93.1" width="38.8" height="13.8" rx="1.9" fill="url(#dwFace)"/>
+        <line x1="145.2" y1="94.4" x2="145.2" y2="105.6" stroke="#C9B98F" stroke-width=".5"/>
+        <text id="dwDay" x="133.65" y="102.9" text-anchor="middle">THU</text>
+        <text id="dwNum" x="153.05" y="103.5" text-anchor="middle">8</text>
+        <rect x="122.1" y="93.1" width="38.8" height="6.4" rx="1.9" fill="url(#dwGloss)"/>
+      </g>
       <line class="hand" id="hourHand" x1="100" y1="108" x2="100" y2="54" stroke-width="6"/>
       <line class="hand" id="minHand" x1="100" y1="112" x2="100" y2="28" stroke-width="4"/>
       <line class="sec" id="secHand" x1="100" y1="120" x2="100" y2="20"/>
@@ -406,7 +435,7 @@
     <section class="group" aria-labelledby="gSound">
       <h2 class="group-title" id="gSound">Sound</h2>
       <div class="row">
-        <span class="row-label" id="slotsLabel">Chimes<small>Choose when to chime, and the sound for each</small></span>
+        <span class="row-label" id="slotsLabel"><small style="margin-top:0">Choose when to chime and the sound for each</small></span>
       </div>
       <button id="toggle" aria-pressed="false">Chimes are off</button>
       <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel"></div>
@@ -482,7 +511,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour. Keep this page open — chimes only play while it’s on screen.</p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (d)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (f)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1045,6 +1074,30 @@
     }
   }
 
+  // Open or close a panel smoothly: it folds up into the line above (or drops
+  // down from it) instead of popping in and out.
+  const calmMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function slidePanel(el, show) {
+    const busy = el._anim; const goingTo = el._target;
+    if (busy && goingTo === show) return;
+    if (!busy && el.hidden === !show) return;
+    if (busy) busy.cancel();
+    el._target = show;
+    if (calmMotion) { el.hidden = !show; el._anim = null; return; }
+    el.hidden = false;
+    const h = el.scrollHeight;
+    const gap = parseFloat(getComputedStyle(el.parentElement).rowGap) || 0;
+    const open = { height: h + 'px', marginTop: '0px', opacity: 1, transform: 'translateY(0)' };
+    const shut = { height: '0px', marginTop: -gap + 'px', opacity: 0, transform: 'translateY(-8px)' };
+    el.style.overflow = 'hidden';
+    const a = el.animate(show ? [shut, open] : [open, shut],
+      { duration: show ? 320 : 450, easing: 'cubic-bezier(.4, 0, .2, 1)' });
+    el._anim = a;
+    a.onfinish = () => {
+      el._anim = null; el.style.overflow = '';
+      if (!show) el.hidden = true;
+    };
+  }
   function applyBg() {
     const root = document.documentElement, bd = $('backdrop');
     varNames.forEach(v => root.style.removeProperty(v));
@@ -1053,7 +1106,7 @@
     document.body.classList.toggle('bg-picture', bgMode === 'picture' && !!picData);
     document.documentElement.classList.toggle('pic-bg', bgMode === 'picture' && !!picData);
     ['Theme', 'Colour', 'Picture'].forEach(n => $('bg' + n).setAttribute('aria-pressed', String(bgMode === n.toLowerCase())));
-    $('colourPanel').hidden = bgMode !== 'colour' || !colourOpen;
+    slidePanel($('colourPanel'), bgMode === 'colour' && colourOpen);
     $('picturePanel').hidden = bgMode !== 'picture';
     $('picRemove').disabled = !picData;
     $('picChoose').textContent = picData ? 'Change picture' : 'Choose picture';
@@ -1375,6 +1428,12 @@
     const d = new Date();
     const h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
     $('hh').textContent = pad(h); $('mm').textContent = pad(m);
+    const dayShort = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][d.getDay()];
+    if ($('dwDay').textContent !== dayShort) {
+      $('dwDay').textContent = dayShort;
+      document.querySelector('.day-date').classList.toggle('sun', d.getDay() === 0);   // Sunday in red, like a Seiko
+    }
+    if ($('dwNum').textContent !== String(d.getDate())) $('dwNum').textContent = d.getDate();
     const dateText = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }).replace(',', '');
     if ($('date').textContent !== dateText) $('date').textContent = dateText;
     $('secs').textContent = pad(s);
