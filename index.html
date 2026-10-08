@@ -18,6 +18,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700&display=swap" rel="stylesheet">
 <style>
+  /* No flashing text cursor anywhere (Windows browsers can show one with caret browsing),
+     except in the hex colour box where you actually type. */
+  html, body, body * { caret-color: transparent; }
+  #colourHex { caret-color: auto; }
+  /* The clock and controls aren't text to select, so clicks don't place a cursor or highlight them. */
+  .clock, .analog, .time, button, .row-label, .group-title, .note, .slots-hint { -webkit-user-select: none; user-select: none; }
   :root {
     --bg: #14213D;
     --ink: #EEF1F6;
@@ -530,7 +536,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Keep this page open — chimes only play while it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (z)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (aa)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
