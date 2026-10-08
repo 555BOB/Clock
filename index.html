@@ -315,6 +315,53 @@
     font-variant-numeric: tabular-nums; cursor: pointer;
   }
   .pick option, .hours-row select option { color: #14213D; background: #FFFFFF; }
+  /* Roller pickers (iPhone style). The real <select> stays hidden underneath. */
+  select.wheel-src { display: none; }
+  .wheel-field {
+    font: inherit; font-size: 1rem; font-weight: 400; padding: .45rem .6rem; border-radius: .6rem;
+    border: 2px solid var(--ink); background: transparent; color: var(--ink);
+    font-variant-numeric: tabular-nums; cursor: pointer; min-width: 0;
+    display: inline-flex; align-items: center; justify-content: space-between; gap: .5rem; text-align: left;
+  }
+  .wheel-field .wf-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wheel-field svg { flex: none; width: .7rem; height: 1rem; opacity: .7; }
+  .slot .sound-pick .wheel-field { flex: 1; }
+  #earlyRow .wheel-field { flex: none; min-width: 6.5rem; }
+  .wheel-back {
+    position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.45);
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .wheel-back[hidden] { display: none; }
+  .wheel-sheet {
+    width: 100%; max-width: 30rem; background: #1B2A4D; color: #EEF1F6;
+    border-radius: 1.25rem 1.25rem 0 0; padding: .5rem 1rem calc(1.25rem + env(safe-area-inset-bottom));
+    box-shadow: 0 -10px 30px rgba(0,0,0,.35);
+  }
+  .wheel-top { display: flex; align-items: center; justify-content: space-between; padding: .4rem 0 .6rem; }
+  .wheel-title { font-weight: 600; font-size: 1rem; }
+  .wheel-top button { border: none; padding: .4rem .2rem; background: none; color: #E0A526; font-weight: 600; }
+  .wheel-top .wheel-cancel { color: #8E99B3; font-weight: 500; }
+  .wheel {
+    --row: 44px; position: relative; height: calc(var(--row) * 5); perspective: 700px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+            mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+  }
+  .wheel-band {
+    position: absolute; left: 0; right: 0; top: calc(var(--row) * 2); height: var(--row);
+    border-radius: .6rem; background: rgba(255,255,255,.1); pointer-events: none;
+  }
+  .wheel-list {
+    position: absolute; inset: 0; overflow-y: scroll; scroll-snap-type: y mandatory;
+    padding: calc(var(--row) * 2) 0; margin: 0; list-style: none;
+    scrollbar-width: none; overscroll-behavior: contain; outline: none;
+    -webkit-overflow-scrolling: touch; transform-style: preserve-3d;
+  }
+  .wheel-list::-webkit-scrollbar { display: none; }
+  .wheel-list li {
+    height: var(--row); line-height: var(--row); text-align: center; scroll-snap-align: center;
+    font-size: 1.3rem; font-variant-numeric: tabular-nums; cursor: pointer; user-select: none;
+    -webkit-user-select: none; backface-visibility: hidden; will-change: transform;
+  }
   .hours-row .to { color: var(--muted); }
   .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: .3rem; }
   .days button { padding: .5rem 0; font-size: .85rem; border-radius: .6rem; min-width: 0; }
@@ -455,11 +502,7 @@
       <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel" hidden></div>
       <div class="row" id="earlyRow" hidden>
         <span class="row-label" id="earlyLabel">Chime earlier<small>Get a warning before meetings start</small></span>
-        <div class="stepper" role="group" aria-labelledby="earlyLabel">
-          <button id="earlyLess" aria-label="10 seconds less">−</button>
-          <output id="earlyValue" aria-live="polite">On time</output>
-          <button id="earlyMore" aria-label="10 seconds more">+</button>
-        </div>
+        <select id="earlySel" aria-labelledby="earlyLabel"></select>
       </div>
     </section>
     <section class="group" aria-labelledby="gAppearance">
@@ -525,7 +568,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Keep this page open — chimes only play while it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (u)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (v)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1102,6 +1145,105 @@
   // Open or close a panel smoothly: it folds up into the line above (or drops
   // down from it) instead of popping in and out.
   const calmMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // ---------- Roller picker, like the iPhone wheel ----------
+  // Turns a <select> into a button; tapping it opens a sheet with a spinning wheel.
+  const wheelBack = document.createElement('div');
+  wheelBack.className = 'wheel-back'; wheelBack.hidden = true;
+  wheelBack.innerHTML = `
+    <div class="wheel-sheet" role="dialog" aria-modal="true" aria-labelledby="wheelTitle">
+      <div class="wheel-top">
+        <button class="wheel-cancel" type="button">Cancel</button>
+        <span class="wheel-title" id="wheelTitle"></span>
+        <button class="wheel-done" type="button">Done</button>
+      </div>
+      <div class="wheel"><div class="wheel-band"></div><ul class="wheel-list" tabindex="0" role="listbox"></ul></div>
+    </div>`;
+  document.body.appendChild(wheelBack);
+  const wList = wheelBack.querySelector('.wheel-list');
+  let wSel = null, wField = null, wRow = 44, wRaf = 0;
+
+  function wheelIndex() { return Math.max(0, Math.min(wList.children.length - 1, Math.round(wList.scrollTop / wRow))); }
+  function wheelDraw() {
+    wRaf = 0;
+    const mid = wList.scrollTop / wRow;
+    [...wList.children].forEach((li, i) => {
+      const d = i - mid, a = Math.abs(d);
+      if (a > 3.5) { li.style.visibility = 'hidden'; return; }
+      li.style.visibility = '';
+      li.style.transform = `rotateX(${-d * 22}deg) scale(${1 - a * .06})`;
+      li.style.opacity = String(Math.max(.25, 1 - a * .28));
+      li.style.fontWeight = a < .5 ? '600' : '400';
+      li.setAttribute('aria-selected', String(a < .5));
+    });
+  }
+  wList.addEventListener('scroll', () => { if (!wRaf) wRaf = requestAnimationFrame(wheelDraw); }, { passive: true });
+  function wheelGo(i, smooth) {
+    wList.scrollTo({ top: i * wRow, behavior: smooth && !calmMotion ? 'smooth' : 'auto' });
+  }
+  wList.addEventListener('click', e => {
+    const li = e.target.closest('li'); if (li) wheelGo([...wList.children].indexOf(li), true);
+  });
+  wList.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); wheelGo(wheelIndex() + 1, true); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); wheelGo(wheelIndex() - 1, true); }
+    else if (e.key === 'Enter') { e.preventDefault(); wheelClose(true); }
+  });
+  function wheelOpen(sel, title, field) {
+    wSel = sel; wField = field;
+    wheelBack.querySelector('.wheel-title').textContent = title;
+    wList.replaceChildren(...[...sel.options].map(o => {
+      const li = document.createElement('li'); li.textContent = o.textContent; li.setAttribute('role', 'option'); return li;
+    }));
+    wheelBack.hidden = false;
+    document.documentElement.style.overflow = 'hidden';
+    wRow = wList.children[0] ? wList.children[0].getBoundingClientRect().height || 44 : 44;
+    wheelGo(Math.max(0, sel.selectedIndex), false);
+    wheelDraw();
+    if (!calmMotion) wheelBack.querySelector('.wheel-sheet').animate(
+      [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
+      { duration: 280, easing: 'cubic-bezier(.2, .8, .2, 1)' });
+    wList.focus({ preventScroll: true });
+  }
+  function wheelClose(keep) {
+    if (!wSel) return;
+    const sel = wSel, field = wField, i = wheelIndex();
+    wSel = wField = null;
+    wheelBack.hidden = true;
+    document.documentElement.style.overflow = '';
+    if (keep && i !== sel.selectedIndex) {
+      sel.selectedIndex = i;
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    wheelSync(sel);
+    field.focus({ preventScroll: true });
+  }
+  wheelBack.querySelector('.wheel-done').addEventListener('click', () => wheelClose(true));
+  wheelBack.querySelector('.wheel-cancel').addEventListener('click', () => wheelClose(false));
+  wheelBack.addEventListener('click', e => { if (e.target === wheelBack) wheelClose(true); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && wSel) wheelClose(false); });
+
+  function wheelSync(sel) {
+    const o = sel.options[sel.selectedIndex];
+    if (sel._wf) sel._wf.querySelector('.wf-text').textContent = o ? o.textContent : '';
+  }
+  function wheelPick(sel, title) {
+    const field = document.createElement('button');
+    field.type = 'button'; field.className = 'wheel-field';
+    field.innerHTML = '<span class="wf-text"></span><svg viewBox="0 0 10 16" aria-hidden="true"><path d="M2 6l3-3 3 3M2 10l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const lab = sel.getAttribute('aria-label');
+    if (lab) field.setAttribute('aria-label', lab);
+    else if (sel.getAttribute('aria-labelledby')) field.setAttribute('aria-labelledby', sel.getAttribute('aria-labelledby') + ' ' + (field.id = 'wf' + Math.random().toString(36).slice(2)));
+    sel.classList.add('wheel-src'); sel.tabIndex = -1;
+    sel.after(field); sel._wf = field;
+    // Keep the button's text right whenever the app sets the value in code.
+    const proto = HTMLSelectElement.prototype;
+    const vd = Object.getOwnPropertyDescriptor(proto, 'value'), id = Object.getOwnPropertyDescriptor(proto, 'selectedIndex');
+    Object.defineProperty(sel, 'value', { get() { return vd.get.call(this); }, set(v) { vd.set.call(this, v); wheelSync(this); } });
+    Object.defineProperty(sel, 'selectedIndex', { get() { return id.get.call(this); }, set(v) { id.set.call(this, v); wheelSync(this); } });
+    field.addEventListener('click', () => wheelOpen(sel, title, field));
+    wheelSync(sel);
+  }
+
   function slidePanel(el, show) {
     const busy = el._anim; const goingTo = el._target;
     if (busy && goingTo === show) return;
@@ -1282,6 +1424,8 @@
       const o = document.createElement('option'); o.value = m; o.textContent = fmt(m); sel.appendChild(o);
     }
   });
+  wheelPick($('hoursStart'), 'From');
+  wheelPick($('hoursEnd'), 'To');
   dayOrder.forEach(i => {
     const b = document.createElement('button');
     b.textContent = dayShort[i]; b.dataset.day = i;
@@ -1339,6 +1483,7 @@
         <button class="test-btn" data-label="Test ${slotNames[k].toLowerCase()} sound" aria-label="Test ${slotNames[k].toLowerCase()} sound">Test</button>
       </div>`;
     const sw = box.querySelector('.switch'), sel = box.querySelector('select'), test = box.querySelector('.test-btn');
+    wheelPick(sel, slotNames[k] + ' sound');
     sw.addEventListener('click', () => { slots[k].on = !slots[k].on; saveSlots(); applySlots(); });
     sel.addEventListener('change', () => {
       slots[k].type = sel.value; saveSlots();
@@ -1433,19 +1578,17 @@
     const m = Math.floor(n / 60), sec = n % 60;
     return [m ? `${m} min` : '', sec ? `${sec} s` : ''].filter(Boolean).join(' ');
   }
-  function applyEarly() {
-    $('earlyValue').textContent = earlyText(early);
-    $('earlyLess').disabled = early <= 0;
-    $('earlyMore').disabled = early >= 120;
+  for (let n = 0; n <= 120; n += 10) {
+    const o = document.createElement('option'); o.value = n; o.textContent = earlyText(n); $('earlySel').appendChild(o);
   }
-  function changeEarly(by) {
-    early = Math.min(120, Math.max(0, early + by));
+  wheelPick($('earlySel'), 'Chime earlier');
+  function applyEarly() { $('earlySel').value = String(early); }
+  $('earlySel').addEventListener('change', e => {
+    early = Math.min(120, Math.max(0, +e.target.value));
     store.set('earlySecs', early);
     lastKey = currentKey(chimeTime(new Date()));
     applyEarly();
-  }
-  $('earlyLess').addEventListener('click', () => changeEarly(-10));
-  $('earlyMore').addEventListener('click', () => changeEarly(10));
+  });
 
   // The chime fires when the clock, pushed forward by the early setting, reaches :00, :15, :30 or :45.
   function chimeTime(d) { return new Date(d.getTime() + early * 1000); }
