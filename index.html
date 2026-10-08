@@ -526,7 +526,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Keep this page open — chimes only play while it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (l)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (n)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -730,7 +730,7 @@
       return v * Math.min(1, t / 0.003) * tail(t, 3, 0.8);
     } })), 0.62, { hall: 0.4 })
   };
-  const soundNames = { chime: 'Chime', watch: '80s watch beep', grandfather: 'Grandfather clock', beep: 'Simple beep', bell: 'Simple bell' };
+  const soundNames = { beep: 'Beep', bell: 'Bell', chime: 'Chime', watch: 'Digital', grandfather: 'Grandfather Clock' };   // A–Z order
 
   // Four chime points: the hour, quarter past, half past, quarter to.
   // Each can be on or off and has its own sound. The hour plays the fuller version.
