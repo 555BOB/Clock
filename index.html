@@ -526,7 +526,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Keep this page open — chimes only play while it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (k)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (l)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -847,6 +847,7 @@
     $('toggle').setAttribute('aria-pressed', String(on));
     slidePanel($('slots'), on);   // chime boxes show only while chimes are on
     slidePanel($('earlyRow'), on); // and so does Chime earlier
+    applySlots();                  // refresh the summary at the bottom
     if (on) { lastKey = currentKey(chimeTime(new Date())); keepAwake(); }
     else if (wakeLock) { try { await wakeLock.release(); } catch (e) {} wakeLock = null; }
   }
@@ -1352,7 +1353,8 @@
     const onList = SLOTS.filter(k => slots[k].on).map(k => ({ 0: 'on the hour', 15: 'at quarter past', 30: 'at half past', 45: 'at quarter to' })[k]);
     // Written without commas: "Chimes on the hour and at quarter past and half past."
     const joined = onList.map((t, i) => (i > 0 && onList[i - 1].startsWith('at ') ? t.replace(/^at /, '') : t)).join(' and ');
-    const what = onList.length === 4 ? 'Chimes every quarter hour.'
+    const what = !on ? 'All chimes are off.'
+      : onList.length === 4 ? 'Chimes every quarter hour.'
       : onList.length ? 'Chimes ' + joined + '.' : 'All chime points are switched off.';
     const keep = document.createElement('span');
     keep.className = 'keep';
