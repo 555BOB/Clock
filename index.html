@@ -78,6 +78,7 @@
   .analog #dwNum { font-size: 8.6px; font-weight: 700; }
   .analog .day-date.sun #dwDay, .analog .day-date.sun #dwNum { fill: #A3242B; }
   .analog .hub-in { fill: var(--bg); }
+  .analog .day-date { display: none; }   /* no date window on the analogue face */
   body:not(.analog-mode) .analog { display: none; }
   body.analog-mode .face, body.analog-mode .arc { display: none; }
   body.no-secs .sec, body.no-secs .hub-sec { display: none; }
@@ -319,23 +320,37 @@
   .days button { padding: .5rem 0; font-size: .85rem; border-radius: .6rem; min-width: 0; }
   .days button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
   .schedule[hidden] { display: none; }
+  .note .keep { display: block; }
+  .slots[hidden], #earlyRow[hidden] { display: none; }
   .schedule { display: flex; flex-direction: column; gap: .75rem; }
   .row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   .row-label { font-size: 1rem; }
   .row-label small { display: block; color: var(--muted); font-size: .85rem; margin-top: .15rem; }
-  /* On/off switch and Test button share one size and shape. */
-  .switch, .test-btn {
+  /* Test button: pill shape. */
+  .test-btn {
     box-sizing: border-box; width: 3.8rem; height: 2.1rem; padding: 0; flex: none; position: relative;
     border-radius: 999px; border: 2px solid var(--ink);
     display: inline-flex; align-items: center; justify-content: center;
   }
-  .switch::after {
-    content: ""; position: absolute; top: calc(50% - .65rem); left: .25rem;
-    width: 1.3rem; height: 1.3rem; border-radius: 50%; background: var(--ink);
-    transition: transform .15s ease;
+  /* On/off switch in the iPhone style: grey track when off, green when on,
+     big white knob with a soft shadow that slides across. */
+  .switch {
+    box-sizing: border-box; width: 3.2rem; height: 1.95rem; padding: 0; flex: none; position: relative;
+    border: none; border-radius: 999px; background: rgba(120,120,128,.36);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: background-color .25s ease;
   }
-  .switch[aria-checked="true"] { background: var(--ink); }
-  .switch[aria-checked="true"]::after { background: var(--bg); transform: translateX(1.75rem); }
+  .switch::after {
+    content: ""; position: absolute; top: .125rem; left: .125rem;
+    width: 1.7rem; height: 1.7rem; border-radius: 999px; background: #FFFFFF;
+    box-shadow: 0 3px 8px rgba(0,0,0,.15), 0 3px 1px rgba(0,0,0,.06);
+    transition: transform .3s cubic-bezier(.3,1.4,.6,1), width .2s ease;
+  }
+  .switch[aria-checked="true"] { background: #34C759; }
+  .switch[aria-checked="true"]::after { transform: translateX(1.25rem); }
+  /* While pressed the knob stretches a little, like on iPhone. */
+  .switch:active::after { width: 2.05rem; }
+  .switch[aria-checked="true"]:active::after { transform: translateX(.9rem); }
   .stepper { display: flex; align-items: center; gap: .5rem; flex: none; }
   .stepper button { width: 2.6rem; height: 2.6rem; padding: 0; font-size: 1.3rem; line-height: 1; }
   .stepper button:disabled { opacity: .3; cursor: default; }
@@ -438,9 +453,9 @@
         <span class="row-label" id="slotsLabel"><small style="margin-top:0">Choose when to chime and the sound for each</small></span>
       </div>
       <button id="toggle" aria-pressed="false">Chimes are off</button>
-      <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel"></div>
-      <div class="row">
-        <span class="row-label" id="earlyLabel">Chime early<small>Get a warning before meetings start</small></span>
+      <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel" hidden></div>
+      <div class="row" id="earlyRow" hidden>
+        <span class="row-label" id="earlyLabel">Chime earlier<small>Get a warning before meetings start</small></span>
         <div class="stepper" role="group" aria-labelledby="earlyLabel">
           <button id="earlyLess" aria-label="10 seconds less">−</button>
           <output id="earlyValue" aria-live="polite">On time</output>
@@ -510,8 +525,8 @@
     <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
   </div>
 
-  <p class="note" id="note">Two chimes on the hour, one on the half hour. Keep this page open — chimes only play while it’s on screen.</p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (f)</p>
+  <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Keep this page open — chimes only play while it’s on screen.</span></p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (k)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -830,6 +845,8 @@
     audio();
     $('toggle').textContent = on ? 'Chimes are on' : 'Chimes are off';
     $('toggle').setAttribute('aria-pressed', String(on));
+    slidePanel($('slots'), on);   // chime boxes show only while chimes are on
+    slidePanel($('earlyRow'), on); // and so does Chime earlier
     if (on) { lastKey = currentKey(chimeTime(new Date())); keepAwake(); }
     else if (wakeLock) { try { await wakeLock.release(); } catch (e) {} wakeLock = null; }
   }
@@ -1337,7 +1354,10 @@
     const joined = onList.map((t, i) => (i > 0 && onList[i - 1].startsWith('at ') ? t.replace(/^at /, '') : t)).join(' and ');
     const what = onList.length === 4 ? 'Chimes every quarter hour.'
       : onList.length ? 'Chimes ' + joined + '.' : 'All chime points are switched off.';
-    $('note').textContent = what + ' Keep this page open — chimes only play while it’s on screen.';
+    const keep = document.createElement('span');
+    keep.className = 'keep';
+    keep.textContent = 'Keep this page open — chimes only play while it’s on screen.';
+    $('note').replaceChildren(what, keep);
   }
   // Build the chosen sounds ahead of time so chimes start instantly.
   function warmSounds() {
