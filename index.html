@@ -307,7 +307,7 @@
   .slot { display: flex; flex-direction: column; gap: .45rem; padding: .7rem .8rem; border: 2px solid var(--track); border-radius: 1rem; }
   .slot-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   .slot .sound-pick .pick { flex: 1; min-width: 0; }
-  .slot.off .sound-pick { opacity: .4; }
+  .sound-pick[hidden] { display: none; }   /* sound choice and Test hide when that time is off */
   .test-btn { font-size: .9rem; line-height: 1; }
   .pick, .hours-row select {
     font: inherit; font-size: 1rem; padding: .45rem .6rem; border-radius: .6rem;
@@ -530,7 +530,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Keep this page open — chimes only play while it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (y)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (z)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1357,10 +1357,13 @@
     });
     $('slots').appendChild(box);
   });
+  let slotsReady = false;   // first draw sets them straight away; after that they slide
   function applySlots() {
     SLOTS.forEach(k => {
       const box = $('slot' + k);
       box.classList.toggle('off', !slots[k].on);
+      const pick = box.querySelector('.sound-pick');
+      if (slotsReady) slidePanel(pick, slots[k].on); else pick.hidden = !slots[k].on;
       box.querySelector('.switch').setAttribute('aria-checked', String(slots[k].on));
       box.querySelector('select').value = slots[k].type;
     });
@@ -1374,6 +1377,7 @@
     keep.className = 'keep';
     keep.textContent = 'Keep this page open — chimes only play while it’s on screen.';
     $('note').replaceChildren(what, keep);
+    slotsReady = true;
   }
   // Build the chosen sounds ahead of time so chimes start instantly.
   function warmSounds() {
