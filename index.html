@@ -526,7 +526,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Keep this page open — chimes only play while it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (o)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (p)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1302,9 +1302,11 @@
     runs.push(run);
     return runs.map(r => r.length > 2 ? `${dayShort[r[0]]}–${dayShort[r[r.length - 1]]}` : r.map(i => dayShort[i]).join(', ')).join(', ');
   }
+  let hoursReady = false;   // first draw sets it straight away; after that it slides like the other panels
   function applyHours() {
     $('hoursSwitch').setAttribute('aria-checked', String(hoursOn));
-    $('schedule').hidden = !hoursOn;
+    if (hoursReady) slidePanel($('schedule'), hoursOn); else $('schedule').hidden = !hoursOn;
+    hoursReady = true;
     $('hoursStart').value = hStart; $('hoursEnd').value = hEnd;
     $('days').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(days[+b.dataset.day])));
     $('hoursSummary').textContent = hoursOn
