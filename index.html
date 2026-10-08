@@ -526,7 +526,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Keep this page open — chimes only play while it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (n)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (o)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -856,7 +856,14 @@
   $('startBtn').addEventListener('click', () => {
     $('start').hidden = true;
     audio();
-    chime(SLOTS.find(k => slots[k].on) ?? 30);
+    // Unlock the sound player silently (phones need this first tap), with no chime.
+    try {
+      player.muted = true;
+      player.src = getSound(SLOTS.find(k => slots[k].on) ?? 30).uri;
+      const p = player.play();
+      const done = () => { try { player.pause(); player.currentTime = 0; } catch (e) {} player.muted = false; };
+      if (p) p.then(() => { playerReady = true; done(); }).catch(done); else done();
+    } catch (e) { player.muted = false; }
     if (!on) setOn(true);
   });
 
