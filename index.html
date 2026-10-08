@@ -372,8 +372,10 @@
   #fullBtn { flex: none; min-width: 10.5rem; }
   /* Main chimes switch: same iPhone-style switch, but lit in yellow when on. */
   #toggle[aria-checked="true"] { background: var(--brass); }
-  #slotsLabel { margin-top: .5rem; }
-  #slotsLabel[hidden] { display: none; }   /* breathing space under 'Chimes are on/off' */
+  /* Instruction line: its own line above the chime boxes, with space under the on/off row. */
+  .slots-hint { margin: .25rem 0 0; color: var(--muted); font-size: .85rem; }
+  .slots-hint[hidden] { display: none; }
+  #chimesLabel { white-space: nowrap; }
   #fullBtn::before {
     content: ""; flex: none; width: .75rem; height: .75rem;
     border: 2px solid currentColor; border-radius: 2px;
@@ -446,9 +448,10 @@
     <section class="group" aria-labelledby="gSound">
       <h2 class="group-title" id="gSound">Sound</h2>
       <div class="row">
-        <span class="row-label" id="chimesLabel"><span id="chimesState">Chimes are off</span><small id="slotsLabel" hidden>Choose when to chime and the sound for each</small></span>
+        <span class="row-label" id="chimesLabel"><span id="chimesState">Chimes are off</span></span>
         <button class="switch" id="toggle" role="switch" aria-checked="false" aria-labelledby="chimesLabel"></button>
       </div>
+      <p class="slots-hint" id="slotsLabel" hidden>Choose when to chime and the sound for each</p>
       <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel" hidden></div>
       <div class="row" id="earlyRow" hidden>
         <span class="row-label" id="earlyLabel">Chime earlier<small>Get a warning before meetings start</small></span>
@@ -522,7 +525,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Keep this page open — chimes only play while it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (s)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (t)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
