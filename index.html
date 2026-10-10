@@ -331,8 +331,7 @@
     margin-top: .55em; font-size: .19em; letter-spacing: normal; font-weight: 600;
     display: flex; align-items: center; gap: .35em; white-space: nowrap; opacity: .85;
   }
-  .time .face-logo .qb-mark { width: 2.1em; height: 2.1em; }
-  .time .face-logo .qb-word { font-size: 1em; }
+  .time .face-logo .qb-word { font-size: 1.15em; }
   body.no-dial-name .analog .dial-name, body.no-dial-name .time .face-logo { display: none; }
   /* On each chime the gold quarter from the logo traces round the clock's edge */
   .ring .trace { stroke: var(--brass); stroke-linecap: round; stroke-dasharray: 0 100; opacity: 0; }
@@ -423,6 +422,13 @@
     cursor: pointer; -webkit-tap-highlight-color: transparent;
     transition: background-color .25s ease;
   }
+  /* Tap targets: every control is at least 44 px to touch (Apple's guideline).
+     Switches keep the iPhone look but get an invisible 44 px touch area. */
+  .switch::before { content: ""; position: absolute; inset: -7px -4px; }
+  .seg button, .test-btn, .pick, .hours-row select, .days button, .stepper button,
+  .pic-actions button, .pic-menu button { min-height: 44px; }
+  .test-btn { height: 44px; width: 4rem; }
+  .stepper button, #earlyRow .stepper button { width: 44px; height: 44px; }
   .switch::after {
     content: ""; position: absolute; top: .125rem; left: .125rem;
     width: 1.7rem; height: 1.7rem; border-radius: 999px; background: #FFFFFF;
@@ -459,7 +465,7 @@
   }
   #fullBtn { flex: none; min-width: 10.5rem; }
   /* Main chimes switch: same iPhone-style switch, but lit in yellow when on. */
-  #toggle[aria-checked="true"] { background: var(--brass); }
+  #toggle[aria-checked="true"] { background: #34C759; }
   /* Instruction line: its own line above the chime boxes, with space under the on/off row. */
   .slots-hint { margin: .25rem 0 0; color: var(--muted); font-size: .85rem; }
   .slots-hint[hidden] { display: none; }
@@ -529,7 +535,7 @@
         <text id="dwNum" x="153.05" y="103.5" text-anchor="middle">8</text>
         <rect x="122.1" y="93.1" width="38.8" height="6.4" rx="1.9" fill="url(#dwGloss)"/>
       </g>
-      <g class="dial-name" transform="translate(90 38) scale(0.1)" aria-hidden="true"><rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="12"/><path d="M100 20 H140 A40 40 0 0 1 180 60 V100" fill="none" stroke="#E0A526" stroke-width="12" stroke-linecap="round"/><circle cx="100" cy="64" r="7" fill="#E0A526"/><path d="M76 126 C76 98 83 72 100 72 C117 72 124 98 124 126 Z" fill="#EEF1F6"/><rect x="70" y="122" width="60" height="10" rx="5" fill="#EEF1F6"/><circle cx="100" cy="142" r="8" fill="#E0A526"/></g>
+      <text class="dial-name" x="100" y="50" text-anchor="middle">Quarter<tspan class="dial-bell">bell</tspan></text>
       <line class="hand" id="hourHand" x1="100" y1="108" x2="100" y2="54" stroke-width="6"/>
       <line class="hand" id="minHand" x1="100" y1="112" x2="100" y2="28" stroke-width="4"/>
       <line class="sec" id="secHand" x1="100" y1="120" x2="100" y2="20"/>
@@ -537,7 +543,7 @@
       <circle class="hub-in" cx="100" cy="100" r="1.8"/>
     </svg>
     <div class="face">
-      <div class="time" id="time"><span class="date" id="date"></span><span id="hh">--</span><span class="colon">:</span><span id="mm">--</span><span class="face-logo" aria-hidden="true"><svg class="qb-mark" viewBox="0 0 200 200" aria-hidden="true"><rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="12"/><path d="M100 20 H140 A40 40 0 0 1 180 60 V100" fill="none" stroke="#E0A526" stroke-width="12" stroke-linecap="round"/><circle cx="100" cy="64" r="7" fill="#E0A526"/><path d="M76 126 C76 98 83 72 100 72 C117 72 124 98 124 126 Z" fill="#EEF1F6"/><rect x="70" y="122" width="60" height="10" rx="5" fill="#EEF1F6"/><circle cx="100" cy="142" r="8" fill="#E0A526"/></svg></span></div>
+      <div class="time" id="time"><span class="date" id="date"></span><span id="hh">--</span><span class="colon">:</span><span id="mm">--</span><span class="face-logo" aria-hidden="true"><span class="qb-word">Quarter<span>bell</span></span></span></div>
       <div class="secs" id="secs">--</div>
     </div>
   </div>
@@ -551,7 +557,7 @@
     <section class="group" aria-labelledby="gSound">
       <h2 class="group-title" id="gSound">Sound</h2>
       <div class="row">
-        <span class="row-label" id="chimesLabel"><span id="chimesState">Chimes are off</span></span>
+        <span class="row-label" id="chimesLabel"><span id="chimesState">Chime</span></span>
         <button class="switch" id="toggle" role="switch" aria-checked="false" aria-labelledby="chimesLabel"></button>
       </div>
       <p class="slots-hint" id="slotsLabel" hidden>Choose when to chime and the sound for each</p>
@@ -638,6 +644,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour<span class="keep">Chimes only play when it is on screen</span></p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (v)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
   <div class="brand-foot">
     <svg class="qb-mark" viewBox="0 0 200 200" aria-hidden="true">
       <rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="10"/>
@@ -649,7 +656,6 @@
     </svg>
     <div class="qb-word">Quarter<span>bell</span></div>
   </div>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (u)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -973,7 +979,7 @@
   async function setOn(value) {
     on = value;
     audio();
-    $('chimesState').textContent = on ? 'Chimes are on' : 'Chimes are off';
+    $('chimesState').textContent = 'Chime';
     $('toggle').setAttribute('aria-checked', String(on));
     slidePanel($('slots'), on);   // chime boxes show only while chimes are on
     slidePanel($('earlyRow'), on); // and so does Chime earlier
