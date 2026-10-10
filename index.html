@@ -386,6 +386,7 @@
   /* Instruction line: its own line above the chime boxes, with space under the on/off row. */
   .slots-hint { margin: .25rem 0 0; color: var(--muted); font-size: .85rem; }
   .slots-hint[hidden] { display: none; }
+  #hoursSummary { margin-top: -.25rem; }
   #chimesLabel { white-space: nowrap; }
   #fullBtn::before {
     content: ""; flex: none; width: .75rem; height: .75rem;
@@ -529,15 +530,15 @@
           <select id="hoursEnd" aria-label="Last chime"></select>
         </div>
         <div class="days" id="days" role="group" aria-label="Days the chimes play"></div>
-        <p class="slots-hint" id="hoursSummary">Chimes 09:00–17:00, Mon–Fri</p>
       </div>
+      <p class="slots-hint" id="hoursSummary">Chimes 09:00–17:00, Mon–Fri</p>
 
     </section>
     <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Chimes only play when it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 10 Oct 2026 (c)</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 10 Oct 2026 (d)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -860,6 +861,7 @@
     slidePanel($('earlyRow'), on); // and so does Chime earlier
     slidePanel($('slotsLabel'), on); // and the instruction line
     applySlots();                  // refresh the summary at the bottom
+    applyHours();                  // and the one in the Schedule box
     if (on) { lastKey = currentKey(chimeTime(new Date())); keepAwake(); }
     else if (wakeLock) { try { await wakeLock.release(); } catch (e) {} wakeLock = null; }
   }
@@ -1318,11 +1320,14 @@
   function applyHours() {
     $('hoursSwitch').setAttribute('aria-checked', String(!hoursOn));   // on = chimes all day, every day
     if (hoursReady) slidePanel($('schedule'), hoursOn); else $('schedule').hidden = !hoursOn;
+    // The sentence shows with the times, or on its own to say chimes are off.
+    const showSum = hoursOn || !on;
+    if (hoursReady) slidePanel($('hoursSummary'), showSum); else $('hoursSummary').hidden = !showSum;
     hoursReady = true;
     $('hoursStart').value = hStart; $('hoursEnd').value = hEnd;
     $('days').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(days[+b.dataset.day])));
-    $('hoursSummary').textContent = hoursOn
-      ? `Chimes ${fmt(hStart)}–${fmt(hEnd)}, ${daysText()}`
+    $('hoursSummary').textContent = !on ? 'Chimes are off'
+      : hoursOn ? `Chimes ${fmt(hStart)}–${fmt(hEnd)}, ${daysText()}`
       : 'Chimes all day, every day';
   }
   // Is this chime (its :00 or :30 moment) inside the working schedule?
