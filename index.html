@@ -297,6 +297,19 @@
     background: var(--bg); padding: 1.5rem; text-align: center;
   }
   .start[hidden] { display: none; }
+  /* Leaving the start screen: the logo grows and fades, then the app fades in beneath. */
+  .start.leaving { animation: qbStartOut 1.7s ease forwards; pointer-events: none; }
+  .start.leaving .start-brand { animation: qbLogoGrow 1.3s cubic-bezier(.3, 0, .2, 1) forwards; }
+  .start.leaving > button, .start.leaving > p { transition: opacity .3s ease; opacity: 0; }
+  @keyframes qbLogoGrow {
+    0% { transform: scale(1); opacity: 1; }
+    55% { opacity: 1; }
+    100% { transform: scale(1.9); opacity: 0; }
+  }
+  @keyframes qbStartOut {
+    0%, 60% { opacity: 1; }
+    100% { opacity: 0; }
+  }
   /* Quarterbell brand: logo mark and wordmark */
   .qb-mark { display: block; }
   .qb-word { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; line-height: 1; letter-spacing: .01em; color: var(--ink); }
@@ -633,7 +646,7 @@
     </svg>
     <div class="qb-word">Quarter<span>bell</span></div>
   </div>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (r)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (s)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -970,7 +983,12 @@
 
   $('toggle').addEventListener('click', () => setOn(!on));
   $('startBtn').addEventListener('click', () => {
-    $('start').hidden = true;
+    const st = $('start');
+    if (calmMotion) st.hidden = true;
+    else {
+      st.classList.add('leaving');
+      setTimeout(() => { st.hidden = true; st.classList.remove('leaving'); }, 1750);
+    }
     audio();
     // Unlock the sound player silently (phones need this first tap), with no chime.
     try {
