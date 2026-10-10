@@ -45,6 +45,10 @@
   }
   *, *::before, *::after { box-sizing: inherit; }
   html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); background: var(--bg); }
+  /* No sideways bounce on iPhone: nothing may stick out past the screen's sides
+     (clip, not hidden, so the frozen clock still stays in place while scrolling). */
+  html, body { overflow-x: clip; overscroll-behavior-x: none; }
+  body { touch-action: pan-y pinch-zoom; }
   html.pic-bg { background: #000; }
   body {
     margin: 0; min-height: 100%;
@@ -270,7 +274,17 @@
   body:not(.full) .exit-full { display: none; }
   body.full .controls, body.full .settings, body.full .note { display: none; }
   body.full main { max-width: none; padding: 0; }
-  body.full .dial { width: min(92vw, 84vh); }
+  /* Full screen: clock a little smaller, with room kept at the bottom for
+     Show controls so the two never overlap. */
+  body.full main { padding-top: calc(1.5rem + env(safe-area-inset-top, 0px)); padding-bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px)); }
+  body.full main { gap: 1rem; }
+  body.full .brand-foot { margin-top: 0; opacity: .7; }
+  /* The clock already carries the logo, so don't show it twice in full screen */
+  body.full:not(.no-dial-name) .brand-foot { display: none; }
+  body.full .dial { width: min(88vw, calc(100vh - 11rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))); }
+  @supports (height: 100svh) {
+    body.full .dial { width: min(88vw, calc(100svh - 11rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))); }
+  }
   body.full .time { font-size: clamp(4rem, min(22vw, 20vh), 11rem); }
   body.full .secs { font-size: clamp(1.25rem, min(5vw, 5vh), 2.4rem); }
   body.full { cursor: none; }
@@ -294,8 +308,17 @@
   .brand-foot .qb-mark { width: 1.6rem; height: 1.6rem; }
   .brand-foot .qb-word { font-size: 1.3rem; }
   /* Maker's name on the analogue face, like a fine watch */
-  .analog .dial-name { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-size: 9px; letter-spacing: .6px; fill: var(--muted); }
-  body.no-dial-name .analog .dial-name { display: none; }
+  .analog .dial-name { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-size: 10px; letter-spacing: .3px; fill: var(--ink); fill-opacity: .8; }
+  .analog .dial-name .dial-bell { fill: var(--brass); fill-opacity: 1; }
+  /* Digital: small logo sitting just under the time (sized from the time, so it scales in full screen) */
+  .time .face-logo {
+    position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    margin-top: .55em; font-size: .19em; letter-spacing: normal; font-weight: 600;
+    display: flex; align-items: center; gap: .35em; white-space: nowrap; opacity: .85;
+  }
+  .time .face-logo .qb-mark { width: 1.25em; height: 1.25em; }
+  .time .face-logo .qb-word { font-size: 1em; }
+  body.no-dial-name .analog .dial-name, body.no-dial-name .time .face-logo { display: none; }
   /* On each chime the gold quarter from the logo traces round the clock's edge */
   .ring .trace { stroke: var(--brass); stroke-linecap: round; stroke-dasharray: 0 100; opacity: 0; }
   body.tracing .ring .trace { animation: qbTrace 2.4s cubic-bezier(.4, 0, .2, 1); }
@@ -490,7 +513,7 @@
         <text id="dwNum" x="153.05" y="103.5" text-anchor="middle">8</text>
         <rect x="122.1" y="93.1" width="38.8" height="6.4" rx="1.9" fill="url(#dwGloss)"/>
       </g>
-      <text class="dial-name" x="100" y="50" text-anchor="middle">Quarterbell</text>
+      <text class="dial-name" x="100" y="50" text-anchor="middle">Quarter<tspan class="dial-bell">bell</tspan></text>
       <line class="hand" id="hourHand" x1="100" y1="108" x2="100" y2="54" stroke-width="6"/>
       <line class="hand" id="minHand" x1="100" y1="112" x2="100" y2="28" stroke-width="4"/>
       <line class="sec" id="secHand" x1="100" y1="120" x2="100" y2="20"/>
@@ -498,7 +521,7 @@
       <circle class="hub-in" cx="100" cy="100" r="1.8"/>
     </svg>
     <div class="face">
-      <div class="time" id="time"><span class="date" id="date"></span><span id="hh">--</span><span class="colon">:</span><span id="mm">--</span></div>
+      <div class="time" id="time"><span class="date" id="date"></span><span id="hh">--</span><span class="colon">:</span><span id="mm">--</span><span class="face-logo" aria-hidden="true"><svg class="qb-mark" viewBox="0 0 200 200" aria-hidden="true"><rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="12"/><path d="M100 20 H140 A40 40 0 0 1 180 60 V100" fill="none" stroke="#E0A526" stroke-width="12" stroke-linecap="round"/><circle cx="100" cy="64" r="7" fill="#E0A526"/><path d="M76 126 C76 98 83 72 100 72 C117 72 124 98 124 126 Z" fill="#EEF1F6"/><rect x="70" y="122" width="60" height="10" rx="5" fill="#EEF1F6"/><circle cx="100" cy="142" r="8" fill="#E0A526"/></svg><span class="qb-word">Quarter<span>bell</span></span></span></div>
       <div class="secs" id="secs">--</div>
     </div>
   </div>
@@ -540,7 +563,7 @@
         </div>
       </div>
       <div class="row">
-        <span class="row-label" id="nameLabel">Name on analogue clock</span>
+        <span class="row-label" id="nameLabel">Logo on clock</span>
         <button class="switch" id="nameSwitch" role="switch" aria-checked="true" aria-labelledby="nameLabel"></button>
       </div>
       <div class="row">
@@ -610,7 +633,7 @@
     </svg>
     <div class="qb-word">Quarter<span>bell</span></div>
   </div>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (n)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (r)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1405,7 +1428,7 @@
   // Content wanders along a slow, looping path within a few pixels of centre.
   // Positions are whole pixels and change at most 1px at a time, every few
   // seconds, so the movement can't be seen and text stays sharp.
-  const shiftOn = true;                    // always on; no setting in the menu
+  const shiftOn = false;                   // burn-in drift switched off: the screen stays perfectly still
   const SHIFT = 6;                         // max distance from centre, px
   const PX = 17 * 60, PY = 23 * 60;        // seconds for one sweep on each axis
   function shiftStep() {
