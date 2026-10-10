@@ -548,7 +548,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Chimes only play when it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (g)<br>© 2026 Ahbaab Hussain. All rights reserved.</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (h)<br>© 2026 Ahbaab Hussain. All rights reserved.</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1159,8 +1159,20 @@
     document.body.classList.toggle('bg-picture', bgMode === 'picture' && !!picData);
     document.documentElement.classList.toggle('pic-bg', bgMode === 'picture' && !!picData);
     ['Theme', 'Colour', 'Picture'].forEach(n => $('bg' + n).setAttribute('aria-pressed', String(bgMode === n.toLowerCase())));
-    slidePanel($('colourPanel'), bgMode === 'colour' && colourOpen);
-    slidePanel($('picturePanel'), bgMode === 'picture' && picOpen);
+    // Colour and Picture options: one closes fully before the other opens,
+    // so switching between them slides at the same speed as everything else.
+    const wantColour = () => bgMode === 'colour' && colourOpen;
+    const wantPic = () => bgMode === 'picture' && picOpen;
+    const panels = [[$('colourPanel'), wantColour], [$('picturePanel'), wantPic]];
+    const closing = [];
+    panels.forEach(([el, want]) => {
+      if (!want()) { slidePanel(el, false); if (el._anim) closing.push(el._anim.finished.catch(() => {})); }
+    });
+    panels.forEach(([el, want]) => {
+      if (!want()) return;
+      if (closing.length && el.hidden) Promise.all(closing).then(() => slidePanel(el, want()));
+      else slidePanel(el, true);
+    });
     slidePanel($('picMenu'), bgMode === 'picture' && picOpen && picMenuOpen);
     if (lastPic) $('picLastThumb').style.backgroundImage = `url("${lastPic}")`;
     $('picRemove').disabled = !picData;
