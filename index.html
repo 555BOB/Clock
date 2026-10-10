@@ -553,8 +553,8 @@
     <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
   </div>
 
-  <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Chimes only play when it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (i)<br>© 2026 Ahbaab Hussain. All rights reserved.</p>
+  <p class="note" id="note">Two chimes on the hour, one on the half hour<span class="keep">Chimes only play when it’s on screen</span></p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (j)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1464,12 +1464,12 @@
     const onList = SLOTS.filter(k => slots[k].on).map(k => ({ 0: 'on the hour', 15: 'at quarter past', 30: 'at half past', 45: 'at quarter to' })[k]);
     // Written without commas: "Chimes on the hour and at quarter past and half past."
     const joined = onList.map((t, i) => (i > 0 && onList[i - 1].startsWith('at ') ? t.replace(/^at /, '') : t)).join(' and ');
-    const what = !on ? 'All chimes are off.'
-      : onList.length === 4 ? 'Chimes every quarter hour.'
-      : onList.length ? 'Chimes ' + joined + '.' : 'All chime points are switched off.';
+    const what = !on ? 'All chimes are off'
+      : onList.length === 4 ? 'Chimes every quarter hour'
+      : onList.length ? 'Chimes ' + joined : 'All chime points are switched off';
     const keep = document.createElement('span');
     keep.className = 'keep';
-    keep.textContent = 'Chimes only play when it’s on screen.';
+    keep.textContent = 'Chimes only play when it’s on screen';
     $('note').replaceChildren(what, keep);
     slotsReady = true;
   }
