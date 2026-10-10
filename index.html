@@ -238,6 +238,12 @@
   }
   .pic-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
   .pic-actions button { padding: .55rem 1rem; font-size: .95rem; }
+  /* Choose picture menu: last picture or a new one from the device. */
+  .pic-menu { display: flex; flex-direction: column; gap: .5rem; padding: .6rem; border: 2px solid var(--track); border-radius: 1rem; }
+  .pic-menu[hidden] { display: none; }
+  .pic-menu button { display: flex; align-items: center; gap: .75rem; padding: .5rem .8rem; font-size: .95rem; border-radius: .8rem; text-align: left; }
+  .pic-menu .thumb { width: 2.6rem; height: 2.6rem; border-radius: .45rem; background: center / cover no-repeat var(--track); flex: none; }
+  .pic-menu .dev-icon { width: 2.6rem; height: 2.6rem; flex: none; display: grid; place-items: center; font-size: 1.3rem; }
   .dim-row { display: flex; align-items: center; gap: .75rem; }
   .dim-row input[type=range] { flex: 1; accent-color: var(--brass); }
   .small-note { font-size: .85rem; color: var(--muted); margin: 0; line-height: 1.4; }
@@ -508,6 +514,10 @@
           <button id="picChoose">Choose picture</button>
           <button id="picRemove">Remove</button>
         </div>
+        <div class="pic-menu" id="picMenu" hidden>
+          <button id="picLast" type="button"><span class="thumb" id="picLastThumb"></span>Last picture</button>
+          <button id="picNew" type="button"><span class="dev-icon" aria-hidden="true">＋</span>Choose from device</button>
+        </div>
         <input type="file" id="picFile" accept="image/*" hidden>
         <div class="dim-row">
           <span class="row-label" id="dimLabel">Dim</span>
@@ -538,7 +548,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Chimes only play when it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (f)<br>© 2026 Ahbaab Hussain. All rights reserved.</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (g)<br>© 2026 Ahbaab Hussain. All rights reserved.</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1067,6 +1077,10 @@
   let bgColour = store.get('bgColour', '#2E6F95');
   let dim = store.get('bgDim', 35);
   let picData = null, picLum = 0.5;
+  let lastPic = null, lastLum = 0.5;            // the picture you had before, kept for "Last picture"
+  try { lastPic = localStorage.getItem('chime-bg-picture-last'); } catch (e) {}
+  lastLum = store.get('bgLastLum', 0.5);
+  let picOpen = false, picTimer = null, picMenuOpen = false;   // picture options shown?
   try { picData = localStorage.getItem('chime-bg-picture'); } catch (e) {}
   picLum = store.get('bgPicLum', 0.5);
 
@@ -1146,7 +1160,9 @@
     document.documentElement.classList.toggle('pic-bg', bgMode === 'picture' && !!picData);
     ['Theme', 'Colour', 'Picture'].forEach(n => $('bg' + n).setAttribute('aria-pressed', String(bgMode === n.toLowerCase())));
     slidePanel($('colourPanel'), bgMode === 'colour' && colourOpen);
-    $('picturePanel').hidden = bgMode !== 'picture';
+    slidePanel($('picturePanel'), bgMode === 'picture' && picOpen);
+    slidePanel($('picMenu'), bgMode === 'picture' && picOpen && picMenuOpen);
+    if (lastPic) $('picLastThumb').style.backgroundImage = `url("${lastPic}")`;
     $('picRemove').disabled = !picData;
     $('picChoose').textContent = picData ? 'Change picture' : 'Choose picture';
     $('dimRange').value = dim;
@@ -1180,8 +1196,9 @@
   }
   function setBgMode(m) {
     if (m !== 'colour') { colourOpen = false; clearTimeout(colourTimer); }
+    if (m !== 'picture') { picOpen = false; picMenuOpen = false; clearTimeout(picTimer); }
     bgMode = m; store.set('bgMode', m); applyBg();
-    if (m === 'picture' && !picData) $('picFile').click();
+    if (m === 'picture' && !picData) choosePicture();
   }
   function setColour(hex) {
     if (!hexRe.test(hex)) return;
@@ -1205,23 +1222,69 @@
   });
   ['pointerdown', 'input', 'change', 'keydown', 'focusin'].forEach(ev =>
     $('colourPanel').addEventListener(ev, nudgeColour));
-  $('bgPicture').addEventListener('click', () => setBgMode('picture'));
+  // Picture options open when Picture is tapped, close if it's tapped again,
+  // and tuck themselves away after 5 seconds without being used, like the palette.
+  let picking = false;   // the device's photo picker is open
+  function closePic() { clearTimeout(picTimer); picOpen = false; picMenuOpen = false; applyBg(); }
+  function nudgePic() {
+    clearTimeout(picTimer);
+    if (!picOpen || picking) return;
+    picTimer = setTimeout(closePic, 5000);
+  }
+  $('bgPicture').addEventListener('click', () => {
+    if (bgMode === 'picture' && picOpen) { closePic(); return; }
+    picOpen = true; setBgMode('picture'); nudgePic();
+  });
+  ['pointerdown', 'input', 'change', 'keydown', 'focusin'].forEach(ev =>
+    $('picturePanel').addEventListener(ev, nudgePic));
+  function openDevicePicker() {
+    picking = true; clearTimeout(picTimer);
+    $('picFile').click();
+  }
+  // Choose picture: if there's a last picture, offer it; otherwise go straight to the device.
+  function choosePicture() {
+    if (lastPic) { picOpen = true; picMenuOpen = !picMenuOpen; applyBg(); nudgePic(); }
+    else openDevicePicker();
+  }
+  function storePic(key, data) { try { if (data) localStorage.setItem(key, data); else localStorage.removeItem(key); return true; } catch (e) { return false; } }
+  // Keep the outgoing picture as the "last picture".
+  function keepAsLast(data, l) {
+    if (!data) return;
+    lastPic = data; lastLum = l; store.set('bgLastLum', l);
+    storePic('chime-bg-picture-last', data);
+  }
+  $('picLast').addEventListener('click', () => {
+    if (!lastPic) return;
+    const was = picData, wasLum = picLum;
+    picData = lastPic; picLum = lastLum; store.set('bgPicLum', picLum);
+    if (!storePic('chime-bg-picture', picData)) $('picNote').textContent = 'Picture set for now, but it couldn’t be remembered.';
+    else $('picNote').textContent = 'Last picture restored.';
+    if (was) keepAsLast(was, wasLum);       // swap, so you can go back again
+    picMenuOpen = false; bgMode = 'picture'; store.set('bgMode', 'picture');
+    applyBg(); nudgePic();
+  });
+  $('picNew').addEventListener('click', () => { picMenuOpen = false; applyBg(); openDevicePicker(); });
+  $('picFile').addEventListener('cancel', () => { picking = false; nudgePic(); });
+  window.addEventListener('focus', () => { if (picking) setTimeout(() => { picking = false; nudgePic(); }, 600); });
   $('colourPick').addEventListener('input', e => setColour(e.target.value));
   $('colourHex').addEventListener('change', e => {
     let v = e.target.value.trim(); if (v[0] !== '#') v = '#' + v;
     if (hexRe.test(v)) setColour(v); else e.target.value = bgColour;
   });
   $('dimRange').addEventListener('input', e => { dim = +e.target.value; store.set('bgDim', dim); applyBg(); });
-  $('picChoose').addEventListener('click', () => $('picFile').click());
+  $('picChoose').addEventListener('click', choosePicture);
   $('picRemove').addEventListener('click', () => {
+    keepAsLast(picData, picLum);            // remembered under "Last picture"
     picData = null;
-    try { localStorage.removeItem('chime-bg-picture'); } catch (e) {}
-    $('picNote').textContent = 'Picture removed.';
+    storePic('chime-bg-picture', null);
+    $('picNote').textContent = 'Picture removed. It’s kept under Choose picture → Last picture.';
+    picMenuOpen = false;
     applyBg();
   });
   $('picFile').addEventListener('change', e => {
     const file = e.target.files && e.target.files[0];
     e.target.value = '';
+    picking = false; nudgePic();
     if (!file) return;
     $('picNote').textContent = 'Loading picture…';
     const url = URL.createObjectURL(file);
@@ -1238,6 +1301,7 @@
       const tg = t.getContext('2d'); tg.drawImage(c, 0, 0, 24, 24);
       const px = tg.getImageData(0, 0, 24, 24).data; let sum = 0;
       for (let i = 0; i < px.length; i += 4) sum += lum(px[i], px[i + 1], px[i + 2]);
+      if (picData) keepAsLast(picData, picLum);   // the one being replaced becomes "Last picture"
       picLum = sum / (px.length / 4); store.set('bgPicLum', picLum);
       let data = c.toDataURL('image/jpeg', 0.85), saved = false;
       for (const q of [0.85, 0.7, 0.55]) {
@@ -1249,7 +1313,7 @@
         ? 'Picture set. Use Dim to keep the clock easy to read.'
         : 'Picture set for now, but it was too large to remember — it will reset when you reload.';
       bgMode = 'picture'; store.set('bgMode', 'picture');
-      applyBg();
+      applyBg(); nudgePic();
     };
     img.onerror = () => { URL.revokeObjectURL(url); $('picNote').textContent = 'That file couldn’t be opened as a picture.'; };
     img.src = url;
