@@ -214,11 +214,17 @@
   main { transform: translate(var(--shift-x, 0px), var(--shift-y, 0px)); }
   .backdrop { transform: scale(1.03) translate(var(--shift-bx, 0px), var(--shift-by, 0px)); }
   body.no-shift main, body.no-shift .backdrop { transform: none; }
-  body.bg-picture .controls, body.bg-picture .settings, body.bg-picture .note {
+  body.bg-picture .controls, body.bg-picture .note {
     background: var(--panel); border-radius: 1.25rem; padding: 1rem;
     -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   }
-  body.bg-picture .settings { padding: .75rem; }
+  /* Picture mode: the frosted panel sits just outside the settings, so the boxes
+     inside keep exactly the same width as with Default or Colour (no jump). */
+  .settings { position: relative; isolation: isolate; }
+  body.bg-picture .settings::before {
+    content: ""; position: absolute; inset: -.75rem; z-index: -1; border-radius: 1.6rem;
+    background: var(--panel); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  }
   .bg-panel { display: flex; flex-direction: column; gap: .75rem; }
   .bg-panel[hidden] { display: none; }
   .swatches { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; }
@@ -548,7 +554,7 @@
   </div>
 
   <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Chimes only play when it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (h)<br>© 2026 Ahbaab Hussain. All rights reserved.</p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (i)<br>© 2026 Ahbaab Hussain. All rights reserved.</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
