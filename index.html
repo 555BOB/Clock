@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Chime Clock">
-<meta name="theme-color" content="#14213D">
+<meta name="theme-color" content="#151555">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -25,7 +25,7 @@
   /* The clock and controls aren't text to select, so clicks don't place a cursor or highlight them. */
   .clock, .analog, .time, button, .row-label, .group-title, .note, .slots-hint { -webkit-user-select: none; user-select: none; }
   :root {
-    --bg: #14213D;
+    --bg: #151555;
     --ink: #EEF1F6;
     --muted: #8E99B3;
     --track: #26355A;
@@ -37,11 +37,11 @@
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #14213D; --ink: #EEF1F6; --muted: #8E99B3; --track: #26355A; --brass: #E0A526; --flash: #3A4A72;
+      --bg: #151555; --ink: #EEF1F6; --muted: #8E99B3; --track: #26355A; --brass: #E0A526; --flash: #3A4A72;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #14213D; --ink: #EEF1F6; --muted: #8E99B3; --track: #26355A; --brass: #E0A526; --flash: #3A4A72;
+    --bg: #151555; --ink: #EEF1F6; --muted: #8E99B3; --track: #26355A; --brass: #E0A526; --flash: #3A4A72;
   }
   *, *::before, *::after { box-sizing: inherit; }
   html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); background: var(--bg); }
@@ -183,7 +183,7 @@
   .sheet-intro { margin: -.4rem 0 0; color: var(--muted); font-size: .95rem; }
   .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .75rem; text-align: left; }
   .steps[hidden] { display: none; }
-  .install-btn { width: 100%; padding: .85rem 1rem; }
+  .install-btn { width: 100%; padding: .85rem 1rem; margin-top: .75rem; }   /* same gap above as below */
   .install-btn[hidden] { display: none; }
   .sheet:not(.top):not(.no-arrow) { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 3.75rem); }
   .steps li { display: flex; gap: .75rem; align-items: flex-start; line-height: 1.45; }
@@ -516,10 +516,10 @@
       </div>
     </section>
     <section class="group" aria-labelledby="gHours">
-      <h2 class="group-title" id="gHours">Hours of operation</h2>
+      <h2 class="group-title" id="gHours">Schedule</h2>
       <div class="row">
-        <span class="row-label" id="hoursLabel">Working hours<small id="hoursSummary">Chimes 09:00–17:00, Mon–Fri</small></span>
-        <button class="switch" id="hoursSwitch" role="switch" aria-checked="true" aria-labelledby="hoursLabel"></button>
+        <span class="row-label" id="hoursLabel" style="white-space:nowrap">Chimes all day, every day</span>
+        <button class="switch" id="hoursSwitch" role="switch" aria-checked="false" aria-labelledby="hoursLabel"></button>
       </div>
       <div class="schedule" id="schedule">
         <div class="hours-row">
@@ -529,14 +529,15 @@
           <select id="hoursEnd" aria-label="Last chime"></select>
         </div>
         <div class="days" id="days" role="group" aria-label="Days the chimes play"></div>
+        <p class="slots-hint" id="hoursSummary">Chimes 09:00–17:00, Mon–Fri</p>
       </div>
 
     </section>
     <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
   </div>
 
-  <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Keep this page open — chimes only play while it’s on screen.</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Version 8 Oct 2026 (aa)</p>
+  <p class="note" id="note">Two chimes on the hour, one on the half hour.<span class="keep">Chimes only play when it’s on screen.</span></p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Version 10 Oct 2026 (c)</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1027,7 +1028,7 @@
   function applyTheme() {
     document.documentElement.setAttribute('data-theme', 'dark');
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', '#14213D');
+    if (meta) meta.setAttribute('content', '#151555');
   }
 
 
@@ -1161,8 +1162,8 @@
       const effective = picLum * (1 - dim / 100);
       const light = effective > 0.45;
       setInk(light);
-      root.style.setProperty('--bg', light ? '#EEF1F6' : '#14213D');
-      metaColour = light ? '#EEF1F6' : '#14213D';
+      root.style.setProperty('--bg', light ? '#EEF1F6' : '#151555');
+      metaColour = light ? '#EEF1F6' : '#151555';
     }
     swatchBox.querySelectorAll('button').forEach(b =>
       b.setAttribute('aria-pressed', String(bgMode === 'colour' && b.dataset.hex.toUpperCase() === bgColour.toUpperCase())));
@@ -1278,7 +1279,7 @@
 
   // ---------- Working hours and days ----------
   // Times are minutes after midnight; chimes fall on :00 and :30, so the lists go in half hours.
-  let hoursOn = store.get('hoursOn', true);
+  let hoursOn = store.get('hoursOn', false);   // new users: chimes all day, every day
   let hStart = store.get('hoursStart', 9 * 60);
   let hEnd = store.get('hoursEnd', 17 * 60);
   // Days indexed Sunday=0 … Saturday=6; Monday to Friday on by default.
@@ -1315,7 +1316,7 @@
   }
   let hoursReady = false;   // first draw sets it straight away; after that it slides like the other panels
   function applyHours() {
-    $('hoursSwitch').setAttribute('aria-checked', String(hoursOn));
+    $('hoursSwitch').setAttribute('aria-checked', String(!hoursOn));   // on = chimes all day, every day
     if (hoursReady) slidePanel($('schedule'), hoursOn); else $('schedule').hidden = !hoursOn;
     hoursReady = true;
     $('hoursStart').value = hStart; $('hoursEnd').value = hEnd;
@@ -1381,7 +1382,7 @@
       : onList.length ? 'Chimes ' + joined + '.' : 'All chime points are switched off.';
     const keep = document.createElement('span');
     keep.className = 'keep';
-    keep.textContent = 'Keep this page open — chimes only play while it’s on screen.';
+    keep.textContent = 'Chimes only play when it’s on screen.';
     $('note').replaceChildren(what, keep);
     slotsReady = true;
   }
