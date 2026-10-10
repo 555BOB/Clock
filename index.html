@@ -53,6 +53,7 @@
     display: flex; align-items: center; justify-content: center;
     transition: background-color .6s ease;
   }
+  body:not(.full) { align-items: flex-start; }
   body.chiming { background: var(--flash); transition: background-color .08s; }
   main {
     width: 100%; max-width: 30rem; padding: 1.5rem .75rem;
@@ -98,7 +99,11 @@
        in full screen) so the picture zooms in to fill it rather than leaving a gap. */
     position: fixed; z-index: 0; pointer-events: none;
     top: calc(-1 * max(env(safe-area-inset-top, 0px), 3rem));
-    bottom: calc(-1 * max(env(safe-area-inset-bottom, 0px), 3rem));
+    /* Height from the full screen, not the page, so opening or closing options
+       never stretches or shifts the picture. */
+    height: calc(100vh + max(env(safe-area-inset-top, 0px), 3rem) + max(env(safe-area-inset-bottom, 0px), 3rem));
+    height: calc(100lvh + max(env(safe-area-inset-top, 0px), 3rem) + max(env(safe-area-inset-bottom, 0px), 3rem));
+    will-change: transform; -webkit-backface-visibility: hidden; backface-visibility: hidden;
     left: calc(-1 * max(env(safe-area-inset-left, 0px), 1rem));
     right: calc(-1 * max(env(safe-area-inset-right, 0px), 1rem));
     background-position: center; background-size: cover; background-repeat: no-repeat;
@@ -553,8 +558,8 @@
     <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
   </div>
 
-  <p class="note" id="note">Two chimes on the hour, one on the half hour<span class="keep">Chimes only play when it’s on screen</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (j)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+  <p class="note" id="note">Two chimes on the hour, one on the half hour<span class="keep">Chimes only play when it is on screen</span></p>
+  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (k)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1469,7 +1474,7 @@
       : onList.length ? 'Chimes ' + joined : 'All chime points are switched off';
     const keep = document.createElement('span');
     keep.className = 'keep';
-    keep.textContent = 'Chimes only play when it’s on screen';
+    keep.textContent = 'Chimes only play when it is on screen';
     $('note').replaceChildren(what, keep);
     slotsReady = true;
   }
