@@ -323,8 +323,9 @@
   .brand-foot .qb-mark { width: 1.6rem; height: 1.6rem; }
   .brand-foot .qb-word { font-size: 1.3rem; }
   /* Maker's name on the analogue face, like a fine watch */
-  .analog .dial-name { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-size: 10px; letter-spacing: .3px; fill: var(--ink); fill-opacity: .8; }
-  .analog .dial-name .dial-bell { fill: var(--brass); fill-opacity: 1; }
+  /* Exactly the written logo: "Quarter" in white, "bell" in gold, same typeface, no extra spacing */
+  .analog .dial-name { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-size: 11px; letter-spacing: 0; fill: #EEF1F6; }
+  .analog .dial-name .dial-bell { fill: #E0A526; }
   /* Digital: small logo sitting just under the time (sized from the time, so it scales in full screen) */
   .time .face-logo {
     position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
@@ -479,9 +480,93 @@
   @media (prefers-reduced-motion: reduce) {
     .arc, body, .switch::after { transition: none; }
   }
+
+  /* ================= Bottom tab layout ================= */
+  :root { --tabh: 64px; }
+  body.tabbed { --sheet: #1D1F6B; }
+  @supports (background: color-mix(in srgb, red, blue)) {
+    body.tabbed { --sheet: color-mix(in srgb, var(--bg) 88%, #ffffff 12%); }
+  }
+  /* Main screen: just the clock, centred above the tab bar, no scrolling. */
+  body.tabbed:not(.full) { align-items: center; }
+  body.tabbed:not(.full) main {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; min-height: 100svh; box-sizing: border-box;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+    padding-bottom: calc(var(--tabh) + env(safe-area-inset-bottom, 0px) + 1rem);
+    max-width: 40rem; gap: 1.25rem;
+  }
+  body.tabbed:not(.full) .clock-pane { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; position: static; }
+  body.tabbed:not(.full) .dial {
+    position: relative; top: auto;
+    width: min(86vw, 28rem, calc(100vh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 12rem));
+  }
+  @supports (height: 100svh) {
+    body.tabbed:not(.full) .dial { width: min(86vw, 28rem, calc(100svh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 12rem)); }
+  }
+  body.tabbed:not(.full) .dial::before { display: none; }
+  body.tabbed .backdrop-top, body.tabbed .backdrop-top.on { display: none !important; }
+  body.tabbed .settings { position: static; isolation: auto; width: auto; max-width: none; display: block; padding: 0; background: none; }
+  body.tabbed .settings::before { display: none !important; }
+
+  /* Tab bar */
+  .tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    height: calc(var(--tabh) + env(safe-area-inset-bottom, 0px));
+    padding: 0 max(env(safe-area-inset-left, 0px), .5rem) env(safe-area-inset-bottom, 0px) max(env(safe-area-inset-right, 0px), .5rem);
+    box-sizing: border-box; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    background: var(--sheet); border-top: 1px solid var(--track);
+  }
+  body.bg-picture .tabbar { background: var(--panel); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+  .tab {
+    border: 0; border-radius: 0; background: none; padding: 0; min-height: 44px; height: var(--tabh);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    color: var(--muted); font-size: .72rem; font-weight: 500; -webkit-tap-highlight-color: transparent;
+  }
+  .tab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tab.active { color: var(--ink); }
+  .tab.active svg { stroke: var(--brass); }
+  .tab { position: relative; }
+  .tab.lit::after { content: ""; position: absolute; top: 10px; left: calc(50% + 9px); width: 7px; height: 7px; border-radius: 50%; background: #34C759; }
+  body.full .tabbar, body.full .sheet-panel { display: none; }
+
+  /* Full-height panels that slide up from the bottom */
+  .sheet-panel {
+    position: fixed; z-index: 25; left: 0; right: 0; margin: 0 auto; max-width: 36rem;
+    top: calc(env(safe-area-inset-top, 0px) + .6rem);
+    bottom: calc(var(--tabh) + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box; border: 0 !important; border-radius: 1.4rem 1.4rem 0 0 !important;
+    background: var(--sheet); box-shadow: 0 -12px 40px rgba(0,0,0,.35);
+    padding: 0 1rem 1.5rem !important; gap: 1rem;
+    overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    transform: translateY(calc(100% + 2rem)); visibility: hidden;
+    transition: transform .38s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .38s;
+  }
+  .sheet-panel.open { transform: none; visibility: visible; transition: transform .38s cubic-bezier(.2, .8, .2, 1), visibility 0s; }
+  body.bg-picture .sheet-panel { background: var(--panel); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); }
+  @media (prefers-reduced-motion: reduce) { .sheet-panel, .sheet-panel.open { transition: none; } }
+  .panel-head {
+    position: sticky; top: 0; z-index: 2; margin: 0 -1rem; padding: .6rem 1rem .5rem;
+    display: grid; grid-template-columns: 44px 1fr 44px; align-items: center;
+    background: inherit; touch-action: none;
+  }
+  .panel-head .grab { position: absolute; top: .45rem; left: 50%; transform: translateX(-50%); width: 2.4rem; height: 5px; border-radius: 3px; background: var(--track); }
+  .panel-head .group-title { grid-column: 2; margin: .7rem 0 0; text-align: center; }
+  .panel-close {
+    grid-column: 3; width: 44px; height: 44px; padding: 0; margin-top: .4rem; border: 0; border-radius: 50%;
+    background: transparent; color: var(--muted); display: grid; place-items: center;
+  }
+  .panel-close svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .panel-foot { margin-top: auto; padding-top: 1rem; display: flex; flex-direction: column; gap: .75rem; }
+  .panel-foot .install-btn { margin-top: 0; }
+  .panel-foot .brand-foot { margin-top: .25rem; }
+  .sound-row .sound-pick { display: flex; }
+  .sound-row[hidden], #soundList[hidden] { display: none; }
+  /* Cards inside panels: a soft outline that shows on the lighter panel colour */
+  .sheet-panel .slot { border-color: rgba(255,255,255,.12); }
 </style>
 </head>
-<body>
+<body class="tabbed">
 <div class="backdrop" id="backdrop" aria-hidden="true"></div>
 <div class="start" id="start">
   <div class="start-brand">
@@ -554,13 +639,13 @@
   </div>
 
   <div class="settings">
-    <section class="group" aria-labelledby="gSound">
-      <h2 class="group-title" id="gSound">Sound</h2>
+    <section class="group sheet-panel" id="panelChime" role="dialog" aria-labelledby="gSound" aria-hidden="true">
+      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gSound">Chime</h2><button class="panel-close" type="button" aria-label="Close Chime"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
       <div class="row">
         <span class="row-label" id="chimesLabel"><span id="chimesState">Chime</span></span>
         <button class="switch" id="toggle" role="switch" aria-checked="false" aria-labelledby="chimesLabel"></button>
       </div>
-      <p class="slots-hint" id="slotsLabel" hidden>Choose when to chime and the sound for each</p>
+      <p class="slots-hint" id="slotsLabel" hidden>Choose when to chime</p>
       <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel" hidden></div>
       <div class="row" id="earlyRow" hidden>
         <span class="row-label" id="earlyLabel">Chime earlier<small style="white-space:nowrap">Chime before the time</small></span>
@@ -571,8 +656,14 @@
         </div>
       </div>
     </section>
-    <section class="group" aria-labelledby="gAppearance">
-      <h2 class="group-title" id="gAppearance">Appearance</h2>
+    <section class="group sheet-panel" id="panelSound" role="dialog" aria-labelledby="gSoundPick" aria-hidden="true">
+      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gSoundPick">Sound</h2><button class="panel-close" type="button" aria-label="Close Sound"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
+      <p class="slots-hint" id="soundHint">Choose a sound for each chime</p>
+      <div class="slots" id="soundList"></div>
+      <p class="slots-hint" id="soundOff" hidden>Turn on Chime to choose sounds</p>
+    </section>
+    <section class="group sheet-panel" id="panelLook" role="dialog" aria-labelledby="gAppearance" aria-hidden="true">
+      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gAppearance">Appearance</h2><button class="panel-close" type="button" aria-label="Close Appearance"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
       <div class="row">
         <span class="row-label" id="secsLabel">Show seconds</span>
         <button class="switch" id="secsSwitch" role="switch" aria-checked="true" aria-labelledby="secsLabel"></button>
@@ -620,9 +711,24 @@
         </div>
         <p class="small-note" id="picNote">Pick a photo from your device. Dim it so the clock stays easy to read.</p>
       </div>
+      <div class="panel-foot">
+        <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
+        <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (x)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+        <div class="brand-foot">
+          <svg class="qb-mark" viewBox="0 0 200 200" aria-hidden="true">
+            <rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="10"/>
+            <path d="M100 20 H140 A40 40 0 0 1 180 60 V100" fill="none" stroke="#E0A526" stroke-width="10" stroke-linecap="round"/>
+            <circle cx="100" cy="66" r="5" fill="#E0A526"/>
+            <path d="M78 124 C78 98 84 74 100 74 C116 74 122 98 122 124 Z" fill="#EEF1F6"/>
+            <rect x="72" y="121" width="56" height="8" rx="4" fill="#EEF1F6"/>
+            <circle cx="100" cy="138" r="6" fill="#E0A526"/>
+          </svg>
+          <div class="qb-word">Quarter<span>bell</span></div>
+        </div>
+      </div>
     </section>
-    <section class="group" aria-labelledby="gHours">
-      <h2 class="group-title" id="gHours">Schedule</h2>
+    <section class="group sheet-panel" id="panelSched" role="dialog" aria-labelledby="gHours" aria-hidden="true">
+      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gHours">Schedule</h2><button class="panel-close" type="button" aria-label="Close Schedule"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
       <div class="row">
         <span class="row-label" id="hoursLabel" style="white-space:nowrap">Chime all day, every day</span>
         <button class="switch" id="hoursSwitch" role="switch" aria-checked="false" aria-labelledby="hoursLabel"></button>
@@ -640,22 +746,15 @@
       <p class="slots-hint" id="hoursSummary">Chimes 09:00–17:00, Mon–Fri</p>
 
     </section>
-    <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
   </div>
 
+  <nav class="tabbar" aria-label="Settings">
+    <button class="tab" id="tabChime" data-panel="panelChime" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6"/><path d="M4 17h16"/><path d="M10 20a2 2 0 0 0 4 0"/><path d="M12 3v2"/></svg><span>Chime</span></button>
+    <button class="tab" id="tabSound" data-panel="panelSound" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10H4z"/><path d="M16.5 9a4 4 0 0 1 0 6"/><path d="M19 6.5a7.5 7.5 0 0 1 0 11"/></svg><span>Sound</span></button>
+    <button class="tab" id="tabLook" data-panel="panelLook" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v4l3 2"/></svg><span>Appearance</span></button>
+    <button class="tab" id="tabSched" data-panel="panelSched" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16"/><path d="M9 3v4M15 3v4"/></svg><span>Schedule</span></button>
+  </nav>
   <p class="note" id="note">Two chimes on the hour, one on the half hour<span class="keep">Chimes only play when it is on screen</span></p>
-  <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (v)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
-  <div class="brand-foot">
-    <svg class="qb-mark" viewBox="0 0 200 200" aria-hidden="true">
-      <rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="10"/>
-      <path d="M100 20 H140 A40 40 0 0 1 180 60 V100" fill="none" stroke="#E0A526" stroke-width="10" stroke-linecap="round"/>
-      <circle cx="100" cy="66" r="5" fill="#E0A526"/>
-      <path d="M78 124 C78 98 84 74 100 74 C116 74 122 98 122 124 Z" fill="#EEF1F6"/>
-      <rect x="72" y="121" width="56" height="8" rx="4" fill="#EEF1F6"/>
-      <circle cx="100" cy="138" r="6" fill="#E0A526"/>
-    </svg>
-    <div class="qb-word">Quarter<span>bell</span></div>
-  </div>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1567,6 +1666,46 @@
   $('hoursStart').addEventListener('change', e => { hStart = +e.target.value; store.set('hoursStart', hStart); applyHours(); });
   $('hoursEnd').addEventListener('change', e => { hEnd = +e.target.value; store.set('hoursEnd', hEnd); applyHours(); });
 
+  // ---------- Bottom tabs: each opens its settings as a full-height panel ----------
+  let openPanel = null;
+  function showPanel(id) {
+    document.querySelectorAll('.sheet-panel').forEach(p => {
+      const open = p.id === id;
+      p.classList.toggle('open', open);
+      p.setAttribute('aria-hidden', String(!open));
+      p.style.transform = '';
+      if (open) p.scrollTop = 0;
+    });
+    document.querySelectorAll('.tab').forEach(t => {
+      const open = t.dataset.panel === id;
+      t.classList.toggle('active', open);
+      t.setAttribute('aria-expanded', String(open));
+    });
+    openPanel = id;
+    document.body.classList.toggle('panel-open', !!id);
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
+    showPanel(openPanel === t.dataset.panel ? null : t.dataset.panel)));
+  document.querySelectorAll('.panel-close').forEach(b => b.addEventListener('click', () => showPanel(null)));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && openPanel && !document.querySelector('.sheet:not([hidden])')) showPanel(null); });
+  // Swipe a panel down by its top bar to close it.
+  document.querySelectorAll('.sheet-panel').forEach(p => {
+    const h = p.querySelector('.panel-head'); let y0 = null, dy = 0;
+    h.addEventListener('touchstart', e => { y0 = e.touches[0].clientY; dy = 0; p.style.transition = 'none'; }, { passive: true });
+    h.addEventListener('touchmove', e => {
+      if (y0 === null) return;
+      dy = Math.max(0, e.touches[0].clientY - y0);
+      p.style.transform = `translateY(${dy}px)`;
+    }, { passive: true });
+    h.addEventListener('touchend', () => {
+      p.style.transition = '';
+      if (dy > 90) showPanel(null); else p.style.transform = '';
+      y0 = null;
+    });
+  });
+
+  new MutationObserver(() => { if (document.body.classList.contains('full') && openPanel) showPanel(null); })
+    .observe(document.body, { attributes: true, attributeFilter: ['class'] });
   // ---------- Chime points and sounds ----------
   const soundOptions = Object.entries(soundNames).map(([v, n]) => `<option value="${v}">${n}</option>`).join('');
   SLOTS.forEach(k => {
@@ -1594,17 +1733,30 @@
       else { audio(); chime(k, test); }
     });
     $('slots').appendChild(box);
+    // The sound choice and Test for this time live in the Sound tab.
+    const srow = document.createElement('div');
+    srow.className = 'slot sound-row'; srow.id = 'srow' + k;
+    srow.innerHTML = `<div class="slot-head"><span class="row-label">${slotNames[k]}</span></div>`;
+    srow.appendChild(box.querySelector('.sound-pick'));
+    $('soundList').appendChild(srow);
   });
   let slotsReady = false;   // first draw sets them straight away; after that they slide
   function applySlots() {
     SLOTS.forEach(k => {
       const box = $('slot' + k);
       box.classList.toggle('off', !slots[k].on);
-      const pick = box.querySelector('.sound-pick');
-      if (slotsReady) slidePanel(pick, slots[k].on); else pick.hidden = !slots[k].on;
+      const srow = $('srow' + k);
+      if (slotsReady) slidePanel(srow, slots[k].on); else srow.hidden = !slots[k].on;
       box.querySelector('.switch').setAttribute('aria-checked', String(slots[k].on));
-      box.querySelector('select').value = slots[k].type;
+      srow.querySelector('select').value = slots[k].type;
     });
+    // Sound tab: sounds only when Chime is on and at least one time is chosen.
+    const anyOn = SLOTS.some(k => slots[k].on);
+    const showSounds = on && anyOn;
+    if (slotsReady) { slidePanel($('soundList'), showSounds); slidePanel($('soundHint'), showSounds); slidePanel($('soundOff'), !showSounds); }
+    else { $('soundList').hidden = !showSounds; $('soundHint').hidden = !showSounds; $('soundOff').hidden = showSounds; }
+    $('soundOff').textContent = on ? 'Turn on a chime time in the Chime tab to choose its sound' : 'Turn on Chime to choose sounds';
+    $('tabChime').classList.toggle('lit', on);
     const onList = SLOTS.filter(k => slots[k].on).map(k => ({ 0: 'on the hour', 15: 'at quarter past', 30: 'at half past', 45: 'at quarter to' })[k]);
     // Written without commas: "Chimes on the hour and at quarter past and half past."
     const joined = onList.map((t, i) => (i > 0 && onList[i - 1].startsWith('at ') ? t.replace(/^at /, '') : t)).join(' and ');
