@@ -582,6 +582,13 @@
   /* Segmented choices: every option the same width */
   .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
   .seg button { text-align: center; }
+  /* Add to Home Screen on the main screen: same style and size as Full screen */
+  body.tabbed .install-btn { width: auto; margin: 0; padding: .8rem 1.4rem; }
+  body.full .install-btn { display: none; }
+  /* When Add to Home Screen shows, the clock shrinks a little so everything still fits */
+  body.tabbed:not(.full):has(#installBtn:not([hidden])) .dial {
+    width: min(86vw, 28rem, calc(100svh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 25.5rem));
+  }
 </style>
 </head>
 <body class="tabbed">
@@ -725,9 +732,6 @@
         </div>
         <p class="small-note" id="picNote">Pick a photo from your device. Dim it so the clock stays easy to read.</p>
       </div>
-      <div class="panel-foot">
-        <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
-      </div>
     </section>
     <section class="group sheet-panel" id="panelSched" role="dialog" aria-labelledby="gHours" aria-hidden="true">
       <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gHours">Schedule</h2><button class="panel-close" type="button" aria-label="Close Schedule"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
@@ -757,8 +761,9 @@
     <button class="tab" id="tabSched" data-panel="panelSched" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16"/><path d="M9 3v4M15 3v4"/></svg><span>Schedule</span></button>
   </nav>
   <p class="note" id="note">Two chimes on the hour, one on the half hour<span class="keep">Chimes only play when it is on screen</span></p>
+  <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
   <div class="main-foot">
-    <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (cc)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+    <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (dd)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
     <div class="brand-foot">
       <svg class="qb-mark" viewBox="0 0 200 200" aria-hidden="true">
         <rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="10"/>
@@ -1638,6 +1643,7 @@
     }
   });
   { const o = document.createElement('option'); o.value = 1439; o.textContent = fmt(1439); $('hoursEnd').appendChild(o); }   // 23:59
+  { const o = document.createElement('option'); o.value = 1; o.textContent = fmt(1); o.hidden = true; $('hoursStart').insertBefore(o, $('hoursStart').options[1]); }   // 00:01, shown only for "all day"
   dayOrder.forEach(i => {
     const b = document.createElement('button');
     b.textContent = dayShort[i]; b.dataset.day = i;
@@ -1670,7 +1676,7 @@
     const showSum = hoursOn || !on;
     if (hoursReady) slidePanel($('hoursSummary'), showSum); else $('hoursSummary').hidden = !showSum;
     hoursReady = true;
-    $('hoursStart').value = hoursOn ? hStart : 0; $('hoursEnd').value = hoursOn ? hEnd : 1439;
+    $('hoursStart').value = hoursOn ? hStart : 1; $('hoursEnd').value = hoursOn ? hEnd : 0;
     $('days').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(hoursOn ? days[+b.dataset.day] : true)));
     $('hoursSummary').textContent = !on ? 'Chimes are off'
       : hoursOn ? `Chimes ${fmt(hStart)}–${fmt(hEnd)}, ${daysText()}`
