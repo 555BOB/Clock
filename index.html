@@ -610,6 +610,10 @@
   body.tabbed .sheet-panel { text-align: left; }   /* centring is for the main screen only */
   body.tabbed .sheet-panel .group-title { text-align: center; }
   .sheet-panel.open.slide-out { transform: translateX(105%); opacity: .6; transition: transform .32s cubic-bezier(.4, 0, .6, 1), opacity .32s ease; }
+  /* Add to Home Screen sits in the same holder as Full screen, so with a picture
+     background it gets the same frosted backing. Hidden holder when the button is. */
+  .install-wrap:has(> #installBtn[hidden]) { display: none; }
+  body.full .install-wrap { display: none; }
 </style>
 </head>
 <body class="tabbed">
@@ -782,9 +786,11 @@
     <button class="tab" id="tabSched" data-panel="panelSched" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16"/><path d="M9 3v4M15 3v4"/></svg><span>Schedule</span></button>
   </nav>
   <p class="note" id="note">Two chimes on the hour, one on the half hour<span class="keep">Chimes only play when it is on screen</span></p>
-  <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
+  <div class="controls install-wrap">
+    <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
+  </div>
   <div class="main-foot">
-    <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (hh)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+    <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (ii)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
   </div>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
