@@ -518,7 +518,7 @@
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
     height: calc(var(--tabh) + env(safe-area-inset-bottom, 0px));
     padding: 0 max(env(safe-area-inset-left, 0px), .5rem) env(safe-area-inset-bottom, 0px) max(env(safe-area-inset-right, 0px), .5rem);
-    box-sizing: border-box; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    box-sizing: border-box; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
     background: var(--sheet); border-top: 1px solid var(--track);
   }
   body.bg-picture .tabbar { background: var(--panel); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
@@ -585,10 +585,6 @@
   /* Add to Home Screen on the main screen: same style and size as Full screen */
   body.tabbed .install-btn { width: auto; margin: 0; padding: .8rem 1.4rem; }
   body.full .install-btn { display: none; }
-  /* When Add to Home Screen shows, the clock shrinks a little so everything still fits */
-  body.tabbed:not(.full):has(#installBtn:not([hidden])) .dial {
-    width: min(86vw, 28rem, calc(100svh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 25.5rem));
-  }
   /* Main screen: every line of text centred */
   body.tabbed main, body.tabbed main .note, body.tabbed .main-foot, body.tabbed .main-foot p,
   body.tabbed .clock-logo, body.tabbed .note .keep { text-align: center; margin-left: auto; margin-right: auto; }
@@ -614,6 +610,11 @@
      background it gets the same frosted backing. Hidden holder when the button is. */
   .install-wrap:has(> #installBtn[hidden]) { display: none; }
   body.full .install-wrap { display: none; }
+  /* Full screen and Add to Home Screen side by side */
+  body.tabbed .controls { flex-wrap: nowrap; gap: .6rem; }
+  body.tabbed .controls #fullBtn { min-width: 0; }
+  body.tabbed .controls button { padding-left: 1.05rem; padding-right: 1.05rem; white-space: nowrap; }
+  @media (max-width: 380px) { body.tabbed .controls button { font-size: .92rem; padding-left: .85rem; padding-right: .85rem; } }
 </style>
 </head>
 <body class="tabbed">
@@ -685,6 +686,7 @@
 
   <div class="controls">
     <button id="fullBtn">Full screen</button>
+    <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
   </div>
   </div>
 
@@ -695,7 +697,7 @@
         <span class="row-label" id="chimesLabel"><span id="chimesState">Chime</span></span>
         <button class="switch" id="toggle" role="switch" aria-checked="false" aria-labelledby="chimesLabel"></button>
       </div>
-      <p class="slots-hint" id="slotsLabel" hidden>Choose when to chime</p>
+      <p class="slots-hint" id="slotsLabel" hidden>Choose when to chime and the sound for each</p>
       <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel" hidden></div>
       <div class="row" id="earlyRow" hidden>
         <span class="row-label" id="earlyLabel">Chime earlier</span>
@@ -705,12 +707,6 @@
           <button id="earlyMore" aria-label="10 seconds more">+</button>
         </div>
       </div>
-    </section>
-    <section class="group sheet-panel" id="panelSound" role="dialog" aria-labelledby="gSoundPick" aria-hidden="true">
-      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gSoundPick">Sound</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
-      <p class="slots-hint" id="soundHint">Choose a sound for each chime</p>
-      <div class="slots" id="soundList"></div>
-      <p class="slots-hint" id="soundOff" hidden>Turn on Chime to choose sounds</p>
     </section>
     <section class="group sheet-panel" id="panelLook" role="dialog" aria-labelledby="gAppearance" aria-hidden="true">
       <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gAppearance">Appearance</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
@@ -757,6 +753,9 @@
         </div>
         <p class="small-note" id="picNote">Pick a photo from your device. Dim it so the clock stays easy to read.</p>
       </div>
+      <div class="panel-foot">
+        <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (mm)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+      </div>
     </section>
     <section class="group sheet-panel" id="panelSched" role="dialog" aria-labelledby="gHours" aria-hidden="true">
       <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gHours">Schedule</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
@@ -781,17 +780,10 @@
 
   <nav class="tabbar" aria-label="Settings">
     <button class="tab" id="tabChime" data-panel="panelChime" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6"/><path d="M4 17h16"/><path d="M10 20a2 2 0 0 0 4 0"/><path d="M12 3v2"/></svg><span>Chime</span></button>
-    <button class="tab" id="tabSound" data-panel="panelSound" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10H4z"/><path d="M16.5 9a4 4 0 0 1 0 6"/><path d="M19 6.5a7.5 7.5 0 0 1 0 11"/></svg><span>Sound</span></button>
     <button class="tab" id="tabLook" data-panel="panelLook" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v4l3 2"/></svg><span>Appearance</span></button>
     <button class="tab" id="tabSched" data-panel="panelSched" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16"/><path d="M9 3v4M15 3v4"/></svg><span>Schedule</span></button>
   </nav>
-  <p class="note" id="note">Two chimes on the hour, one on the half hour<span class="keep">Chimes only play when it is on screen</span></p>
-  <div class="controls install-wrap">
-    <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
-  </div>
-  <div class="main-foot">
-    <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (jj)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
-  </div>
+  <p class="note" id="note">Two chimes on the hour, one on the half hour</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1807,27 +1799,17 @@
       else { audio(); chime(k, test); }
     });
     $('slots').appendChild(box);
-    // The sound choice and Test for this time live in the Sound tab.
-    const srow = document.createElement('div');
-    srow.className = 'slot sound-row'; srow.id = 'srow' + k;
-    srow.innerHTML = `<div class="slot-head"><span class="row-label">${slotNames[k]}</span></div>`;
-    srow.appendChild(box.querySelector('.sound-pick'));
-    $('soundList').appendChild(srow);
   });
   let slotsReady = false;   // first draw sets them straight away; after that they slide
   function applySlots() {
     SLOTS.forEach(k => {
       const box = $('slot' + k);
       box.classList.toggle('off', !slots[k].on);
-      const srow = $('srow' + k);
-      srow.hidden = false; srow.classList.toggle('off', !slots[k].on);
+      const pick = box.querySelector('.sound-pick');   // sound and Test show only when this time is on
+      if (slotsReady) slidePanel(pick, slots[k].on); else pick.hidden = !slots[k].on;
       box.querySelector('.switch').setAttribute('aria-checked', String(slots[k].on));
-      srow.querySelector('select').value = slots[k].type;
+      box.querySelector('select').value = slots[k].type;
     });
-    // Sound tab: sounds only when Chime is on and at least one time is chosen.
-    const anyOn = SLOTS.some(k => slots[k].on);
-    const showSounds = on && anyOn;
-    $('soundList').hidden = false; $('soundHint').hidden = false; $('soundOff').hidden = true;
     $('tabChime').classList.toggle('lit', on);
     const onList = SLOTS.filter(k => slots[k].on).map(k => ({ 0: 'on the hour', 15: 'at quarter past', 30: 'at half past', 45: 'at quarter to' })[k]);
     // Written without commas: "Chimes on the hour and at quarter past and half past."
@@ -1835,10 +1817,7 @@
     const what = !on ? 'All chimes are off'
       : onList.length === 4 ? 'Chimes every quarter hour'
       : onList.length ? 'Chimes ' + joined : 'All chime points are switched off';
-    const keep = document.createElement('span');
-    keep.className = 'keep';
-    keep.textContent = 'Chimes only play when it is on screen';
-    $('note').replaceChildren(what, keep);
+    $('note').textContent = what;
     slotsReady = true;
   }
   // Build the chosen sounds ahead of time so chimes start instantly.
