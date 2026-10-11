@@ -503,10 +503,10 @@
   body.tabbed:not(.full) .clock-pane { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; position: static; }
   body.tabbed:not(.full) .dial {
     position: relative; top: auto;
-    width: min(86vw, 28rem, calc(100vh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 21rem));
+    width: min(86vw, 28rem, calc(100vh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 25rem));
   }
   @supports (height: 100svh) {
-    body.tabbed:not(.full) .dial { width: min(86vw, 28rem, calc(100svh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 21rem)); }
+    body.tabbed:not(.full) .dial { width: min(86vw, 28rem, calc(100svh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 25rem)); }
   }
   body.tabbed:not(.full) .dial::before { display: none; }
   body.tabbed .backdrop-top, body.tabbed .backdrop-top.on { display: none !important; }
@@ -531,7 +531,6 @@
   .tab.active { color: var(--ink); }
   .tab.active svg { stroke: var(--brass); }
   .tab { position: relative; }
-  .tab.lit::after { content: ""; position: absolute; top: 10px; left: calc(50% + 9px); width: 7px; height: 7px; border-radius: 50%; background: #34C759; }
   body.full .tabbar, body.full .sheet-panel { display: none; }
 
   /* Full-height panels that slide up from the bottom */
@@ -623,6 +622,27 @@
   .about-love { color: var(--ink); font-size: 1.05rem; }
   .about-note { color: var(--muted); font-size: .9rem; }
   .about-ver { color: var(--muted); font-size: .8rem; opacity: .8; margin-top: .5rem !important; }
+  /* Main screen: logos at the top, clock and summary in the middle, buttons at the bottom */
+  body.tabbed:not(.full) main { justify-content: stretch; }
+  body.tabbed:not(.full) .clock-pane { flex: 1; width: 100%; }
+  .clock-brand { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+  .clock-brand .qb-mark { width: 3rem; height: 3rem; }
+  body.tabbed:not(.full) .clock-brand { margin-bottom: auto; }
+  body.tabbed:not(.full) .controls { margin-top: auto; }
+  body.full .clock-brand .qb-mark { display: none; }
+  /* About: logo and message in the middle, disclaimer and version at the bottom */
+  .sheet-panel#panelAbout { display: flex; flex-direction: column; }
+  .about { flex: 1 0 auto; display: flex; flex-direction: column; justify-content: space-between; padding: 0 .5rem .25rem; }
+  .about-mid { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; text-align: center; }
+  .about-bottom { display: flex; flex-direction: column; align-items: center; gap: .5rem; text-align: center; }
+  .about .heart { font-size: 1.05em; }
+  /* Short screens (phone on its side): smaller brand, and the clock never shrinks away */
+  @media (max-height: 520px) {
+    .clock-brand .qb-mark { display: none; }
+    .clock-brand .clock-logo { font-size: 1.4rem; }
+    body.tabbed:not(.full) main, body.tabbed:not(.full) .clock-pane { gap: .75rem; }
+    body.tabbed:not(.full) .dial { width: max(9rem, calc(100svh - var(--tabh) - env(safe-area-inset-bottom, 0px) - 15rem)); }
+  }
 </style>
 </head>
 <body class="tabbed">
@@ -645,7 +665,7 @@
 <main>
   <div class="backdrop backdrop-top" id="backdropTop" aria-hidden="true"></div>
   <div class="clock-pane">
-  <div class="clock-logo qb-word" aria-hidden="true">Quarter<span>bell</span></div>
+  <div class="clock-brand" aria-hidden="true"><svg class="qb-mark" viewBox="0 0 200 200" aria-hidden="true"><rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="10"/><path d="M100 20 H140 A40 40 0 0 1 180 60 V100" fill="none" stroke="#E0A526" stroke-width="10" stroke-linecap="round"/><circle cx="100" cy="66" r="5" fill="#E0A526"/><path d="M78 124 C78 98 84 74 100 74 C116 74 122 98 122 124 Z" fill="#EEF1F6"/><rect x="72" y="121" width="56" height="8" rx="4" fill="#EEF1F6"/><circle cx="100" cy="138" r="6" fill="#E0A526"/></svg><div class="clock-logo qb-word">Quarter<span>bell</span></div></div>
   <div class="dial" aria-live="off">
     <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
       <path class="track" id="track"/>
@@ -701,7 +721,7 @@
 
   <div class="settings">
     <section class="group sheet-panel" id="panelChime" role="dialog" aria-labelledby="gSound" aria-hidden="true">
-      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gSound">Chime</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
+      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gSound">Chimes</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
       <div class="row">
         <span class="row-label" id="chimesLabel"><span id="chimesState">Chimes are off</span></span>
         <button class="switch" id="toggle" role="switch" aria-checked="false" aria-labelledby="chimesLabel"></button>
@@ -785,17 +805,21 @@
     <section class="group sheet-panel" id="panelAbout" role="dialog" aria-labelledby="gAbout" aria-hidden="true">
       <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gAbout">About</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
       <div class="about">
+        <div class="about-mid">
         <svg class="qb-mark" viewBox="0 0 200 200" aria-hidden="true"><rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="10"/><path d="M100 20 H140 A40 40 0 0 1 180 60 V100" fill="none" stroke="#E0A526" stroke-width="10" stroke-linecap="round"/><circle cx="100" cy="66" r="5" fill="#E0A526"/><path d="M78 124 C78 98 84 74 100 74 C116 74 122 98 122 124 Z" fill="#EEF1F6"/><rect x="72" y="121" width="56" height="8" rx="4" fill="#EEF1F6"/><circle cx="100" cy="138" r="6" fill="#E0A526"/></svg>
         <div class="qb-word">Quarter<span>bell</span></div>
-        <p class="about-love">Made with love in Wolverhampton and Edinburgh</p>
+        <p class="about-love">Made with <span class="heart" role="img" aria-label="love">❤️</span> in Birmingham and Edinburgh</p>
+        </div>
+        <div class="about-bottom">
         <p class="about-note">Chimes only play while Quarterbell is open on screen</p>
-        <p class="about-ver">Beta version 1.0 (qq)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+        <p class="about-ver">Beta version 1.0 (rr)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+        </div>
       </div>
     </section>
   </div>
 
   <nav class="tabbar" aria-label="Settings">
-    <button class="tab" id="tabChime" data-panel="panelChime" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6"/><path d="M4 17h16"/><path d="M10 20a2 2 0 0 0 4 0"/><path d="M12 3v2"/></svg><span>Chime</span></button>
+    <button class="tab" id="tabChime" data-panel="panelChime" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6"/><path d="M4 17h16"/><path d="M10 20a2 2 0 0 0 4 0"/><path d="M12 3v2"/></svg><span>Chimes</span></button>
     <button class="tab" id="tabLook" data-panel="panelLook" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v4l3 2"/></svg><span>Appearance</span></button>
     <button class="tab" id="tabSched" data-panel="panelSched" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16"/><path d="M9 3v4M15 3v4"/></svg><span>Schedule</span></button>
     <button class="tab" id="tabAbout" data-panel="panelAbout" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 7.6v.1"/></svg><span>About</span></button>
@@ -1704,7 +1728,7 @@
     hoursReady = true;
     $('hoursStart').value = hoursOn ? hStart : 1; $('hoursEnd').value = hoursOn ? hEnd : 0;
     $('days').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(hoursOn ? days[+b.dataset.day] : true)));
-    $('hoursSummary').textContent = !on ? 'Chimes are off. Turn them on in the Chime tab to set a schedule'
+    $('hoursSummary').textContent = !on ? 'Chimes are off. Turn them on in the Chimes tab to set a schedule'
       : hoursOn ? `Chimes ${fmt(hStart)}–${fmt(hEnd)}, ${daysText()}`
       : 'Chimes all day, every day';
   }
