@@ -684,6 +684,15 @@
     body.tabbed:not(.full) .controls { align-self: end; }
     body.tabbed:not(.full) main { max-width: none; padding-left: max(env(safe-area-inset-left, 0px), 1.25rem); padding-right: max(env(safe-area-inset-right, 0px), 1.25rem); }
   }
+  /* Digital time on a phone on its side: worked out from the clock's own size,
+     a touch smaller, so it always sits well inside the dashes (doesn't rely on newer browser features) */
+  @media (orientation: landscape) and (max-height: 520px) {
+    body.tabbed:not(.full) .time {
+      font-size: calc(min(48vw, 100vh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2.5rem) * .19);
+      font-size: calc(min(48vw, 100svh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2.5rem) * .19);
+    }
+    body.full .time { font-size: calc(min(70vw, 100svh - 5rem) * .19); }
+  }
 </style>
 </head>
 <body class="tabbed">
@@ -855,7 +864,7 @@
         </div>
         <div class="about-bottom">
         <p class="about-note">Chimes only play while Quarterbell is open on screen</p>
-        <p class="about-ver">Beta version 1.0 (vv)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+        <p class="about-ver">Beta version 1.0 (ww)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
         </div>
       </div>
     </section>
