@@ -283,9 +283,9 @@
   body.full .brand-foot { margin-top: 0; opacity: .7; }
   /* The clock already carries the logo, so don't show it twice in full screen */
   body.full:not(.no-dial-name) .brand-foot { display: none; }
-  body.full .dial { width: min(88vw, calc(100vh - 11rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))); }
+  body.full .dial { width: min(88vw, calc(100vh - 14rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))); }
   @supports (height: 100svh) {
-    body.full .dial { width: min(88vw, calc(100svh - 11rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))); }
+    body.full .dial { width: min(88vw, calc(100svh - 14rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))); }
   }
   body.full .time { font-size: clamp(4rem, min(22vw, 20vh), 11rem); }
   body.full .secs { font-size: clamp(1.25rem, min(5vw, 5vh), 2.4rem); }
@@ -333,7 +333,9 @@
     display: flex; align-items: center; gap: .35em; white-space: nowrap; opacity: .85;
   }
   .time .face-logo .qb-word { font-size: 1.15em; }
-  body.no-dial-name .analog .dial-name, body.no-dial-name .time .face-logo { display: none; }
+  .clock-logo { font-size: 1.9rem; text-align: center; }
+  body.no-dial-name .clock-logo { display: none; }
+  body.full .clock-logo { font-size: clamp(1.9rem, 4.5vh, 3rem); }
   /* On each chime the gold quarter from the logo traces round the clock's edge */
   .ring .trace { stroke: var(--brass); stroke-linecap: round; stroke-dasharray: 0 100; opacity: 0; }
   body.tracing .ring .trace { animation: qbTrace 2.4s cubic-bezier(.4, 0, .2, 1); }
@@ -403,6 +405,9 @@
   .days button { padding: .5rem 0; font-size: .85rem; border-radius: .6rem; min-width: 0; }
   .days button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
   .schedule[hidden] { display: none; }
+  .schedule { transition: opacity .3s ease; }
+  .schedule.locked { opacity: .4; }
+  .schedule.locked select, .schedule.locked button { cursor: default; }
   .note .keep { display: block; }
   .slots[hidden], #earlyRow[hidden] { display: none; }
   .schedule { display: flex; flex-direction: column; gap: .75rem; }
@@ -429,7 +434,7 @@
   .seg button, .test-btn, .pick, .hours-row select, .days button, .stepper button,
   .pic-actions button, .pic-menu button { min-height: 44px; }
   .test-btn { height: 44px; width: 4rem; }
-  .stepper button, #earlyRow .stepper button { width: 44px; height: 44px; }
+  .stepper button, #earlyRow .stepper button { width: 44px; height: 44px; min-width: 44px; padding: 0; border-radius: 50%; }
   .switch::after {
     content: ""; position: absolute; top: .125rem; left: .125rem;
     width: 1.7rem; height: 1.7rem; border-radius: 999px; background: #FFFFFF;
@@ -448,7 +453,6 @@
   /* Keep Chime earlier on one line beside its text, even on smaller iPhones. */
   #earlyRow { gap: .75rem; }
   #earlyRow .stepper { gap: .35rem; }
-  #earlyRow .stepper button { width: 2.3rem; height: 2.3rem; }
   #earlyRow .stepper output { min-width: 4.2rem; }
   .controls { display: flex; gap: .75rem; justify-content: center; width: max-content; max-width: 100%; margin-left: auto; margin-right: auto; align-self: center; justify-self: center; }
   button {
@@ -499,10 +503,10 @@
   body.tabbed:not(.full) .clock-pane { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; position: static; }
   body.tabbed:not(.full) .dial {
     position: relative; top: auto;
-    width: min(86vw, 28rem, calc(100vh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 12rem));
+    width: min(86vw, 28rem, calc(100vh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 21rem));
   }
   @supports (height: 100svh) {
-    body.tabbed:not(.full) .dial { width: min(86vw, 28rem, calc(100svh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 12rem)); }
+    body.tabbed:not(.full) .dial { width: min(86vw, 28rem, calc(100svh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 21rem)); }
   }
   body.tabbed:not(.full) .dial::before { display: none; }
   body.tabbed .backdrop-top, body.tabbed .backdrop-top.on { display: none !important; }
@@ -561,9 +565,23 @@
   .panel-foot .install-btn { margin-top: 0; }
   .panel-foot .brand-foot { margin-top: .25rem; }
   .sound-row .sound-pick { display: flex; }
+  .sound-row.off .slot-head .row-label::after { content: " · off"; color: var(--muted); font-size: .85rem; }
+  .sound-row.off .sound-pick { opacity: 1; }
   .sound-row[hidden], #soundList[hidden] { display: none; }
   /* Cards inside panels: a soft outline that shows on the lighter panel colour */
   .sheet-panel .slot { border-color: rgba(255,255,255,.12); }
+
+  /* Main screen: clock, Full screen, summary and footer all evenly spaced */
+  body.tabbed:not(.full) main, body.tabbed:not(.full) .clock-pane { gap: 1.5rem; }
+  body.tabbed .main-foot { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+  body.tabbed .main-foot .note.version { margin: 0; }
+  body.tabbed .main-foot .brand-foot { margin: 0; }
+  body.full .main-foot { display: none; }
+  body.tabbed .settings { display: contents; }   /* panels are fixed, so it takes no space (and adds no extra gap) */
+
+  /* Segmented choices: every option the same width */
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+  .seg button { text-align: center; }
 </style>
 </head>
 <body class="tabbed">
@@ -586,6 +604,7 @@
 <main>
   <div class="backdrop backdrop-top" id="backdropTop" aria-hidden="true"></div>
   <div class="clock-pane">
+  <div class="clock-logo qb-word" aria-hidden="true">Quarter<span>bell</span></div>
   <div class="dial" aria-live="off">
     <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
       <path class="track" id="track"/>
@@ -620,7 +639,6 @@
         <text id="dwNum" x="153.05" y="103.5" text-anchor="middle">8</text>
         <rect x="122.1" y="93.1" width="38.8" height="6.4" rx="1.9" fill="url(#dwGloss)"/>
       </g>
-      <text class="dial-name" x="100" y="50" text-anchor="middle">Quarter<tspan class="dial-bell">bell</tspan></text>
       <line class="hand" id="hourHand" x1="100" y1="108" x2="100" y2="54" stroke-width="6"/>
       <line class="hand" id="minHand" x1="100" y1="112" x2="100" y2="28" stroke-width="4"/>
       <line class="sec" id="secHand" x1="100" y1="120" x2="100" y2="20"/>
@@ -628,7 +646,7 @@
       <circle class="hub-in" cx="100" cy="100" r="1.8"/>
     </svg>
     <div class="face">
-      <div class="time" id="time"><span class="date" id="date"></span><span id="hh">--</span><span class="colon">:</span><span id="mm">--</span><span class="face-logo" aria-hidden="true"><span class="qb-word">Quarter<span>bell</span></span></span></div>
+      <div class="time" id="time"><span class="date" id="date"></span><span id="hh">--</span><span class="colon">:</span><span id="mm">--</span></div>
       <div class="secs" id="secs">--</div>
     </div>
   </div>
@@ -648,7 +666,7 @@
       <p class="slots-hint" id="slotsLabel" hidden>Choose when to chime</p>
       <div class="slots" id="slots" role="group" aria-labelledby="slotsLabel" hidden></div>
       <div class="row" id="earlyRow" hidden>
-        <span class="row-label" id="earlyLabel">Chime earlier<small style="white-space:nowrap">Chime before the time</small></span>
+        <span class="row-label" id="earlyLabel">Chime earlier</span>
         <div class="stepper" role="group" aria-labelledby="earlyLabel">
           <button id="earlyLess" aria-label="10 seconds less">−</button>
           <output id="earlyValue" aria-live="polite">On time</output>
@@ -674,10 +692,6 @@
           <button id="styleAnalog" aria-pressed="true">Analogue</button>
           <button id="styleDigital" aria-pressed="false">Digital</button>
         </div>
-      </div>
-      <div class="row">
-        <span class="row-label" id="nameLabel">Logo on clock</span>
-        <button class="switch" id="nameSwitch" role="switch" aria-checked="true" aria-labelledby="nameLabel"></button>
       </div>
       <div class="row">
         <span class="row-label" id="bgLabel">Background</span>
@@ -713,18 +727,6 @@
       </div>
       <div class="panel-foot">
         <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
-        <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (x)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
-        <div class="brand-foot">
-          <svg class="qb-mark" viewBox="0 0 200 200" aria-hidden="true">
-            <rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="10"/>
-            <path d="M100 20 H140 A40 40 0 0 1 180 60 V100" fill="none" stroke="#E0A526" stroke-width="10" stroke-linecap="round"/>
-            <circle cx="100" cy="66" r="5" fill="#E0A526"/>
-            <path d="M78 124 C78 98 84 74 100 74 C116 74 122 98 122 124 Z" fill="#EEF1F6"/>
-            <rect x="72" y="121" width="56" height="8" rx="4" fill="#EEF1F6"/>
-            <circle cx="100" cy="138" r="6" fill="#E0A526"/>
-          </svg>
-          <div class="qb-word">Quarter<span>bell</span></div>
-        </div>
       </div>
     </section>
     <section class="group sheet-panel" id="panelSched" role="dialog" aria-labelledby="gHours" aria-hidden="true">
@@ -755,6 +757,20 @@
     <button class="tab" id="tabSched" data-panel="panelSched" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16"/><path d="M9 3v4M15 3v4"/></svg><span>Schedule</span></button>
   </nav>
   <p class="note" id="note">Two chimes on the hour, one on the half hour<span class="keep">Chimes only play when it is on screen</span></p>
+  <div class="main-foot">
+    <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (cc)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+    <div class="brand-foot">
+      <svg class="qb-mark" viewBox="0 0 200 200" aria-hidden="true">
+        <rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="10"/>
+        <path d="M100 20 H140 A40 40 0 0 1 180 60 V100" fill="none" stroke="#E0A526" stroke-width="10" stroke-linecap="round"/>
+        <circle cx="100" cy="66" r="5" fill="#E0A526"/>
+        <path d="M78 124 C78 98 84 74 100 74 C116 74 122 98 122 124 Z" fill="#EEF1F6"/>
+        <rect x="72" y="121" width="56" height="8" rx="4" fill="#EEF1F6"/>
+        <circle cx="100" cy="138" r="6" fill="#E0A526"/>
+      </svg>
+      <div class="qb-word">Quarter<span>bell</span></div>
+    </div>
+  </div>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
@@ -1081,8 +1097,8 @@
     $('chimesState').textContent = 'Chime';
     $('toggle').setAttribute('aria-checked', String(on));
     slidePanel($('slots'), on);   // chime boxes show only while chimes are on
-    slidePanel($('earlyRow'), on); // and so does Chime earlier
     slidePanel($('slotsLabel'), on); // and the instruction line
+    slidePanel($('earlyRow'), on); // and Chime earlier
     applySlots();                  // refresh the summary at the bottom
     applyHours();                  // and the one in the Schedule box
     if (on) { lastKey = currentKey(chimeTime(new Date())); keepAwake(); }
@@ -1621,6 +1637,7 @@
       const o = document.createElement('option'); o.value = m; o.textContent = fmt(m); sel.appendChild(o);
     }
   });
+  { const o = document.createElement('option'); o.value = 1439; o.textContent = fmt(1439); $('hoursEnd').appendChild(o); }   // 23:59
   dayOrder.forEach(i => {
     const b = document.createElement('button');
     b.textContent = dayShort[i]; b.dataset.day = i;
@@ -1644,13 +1661,17 @@
   let hoursReady = false;   // first draw sets it straight away; after that it slides like the other panels
   function applyHours() {
     $('hoursSwitch').setAttribute('aria-checked', String(!hoursOn));   // on = chimes all day, every day
-    if (hoursReady) slidePanel($('schedule'), hoursOn); else $('schedule').hidden = !hoursOn;
+    // Times and days always show; with "all day, every day" on they're greyed out
+    // and show the whole day (00:00–23:59, every day). Your own times are kept for later.
+    $('schedule').hidden = false;
+    $('schedule').classList.toggle('locked', !hoursOn);
+    $('schedule').querySelectorAll('select, button').forEach(el => { el.disabled = !hoursOn; });
     // The sentence shows with the times, or on its own to say chimes are off.
     const showSum = hoursOn || !on;
     if (hoursReady) slidePanel($('hoursSummary'), showSum); else $('hoursSummary').hidden = !showSum;
     hoursReady = true;
-    $('hoursStart').value = hStart; $('hoursEnd').value = hEnd;
-    $('days').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(days[+b.dataset.day])));
+    $('hoursStart').value = hoursOn ? hStart : 0; $('hoursEnd').value = hoursOn ? hEnd : 1439;
+    $('days').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(hoursOn ? days[+b.dataset.day] : true)));
     $('hoursSummary').textContent = !on ? 'Chimes are off'
       : hoursOn ? `Chimes ${fmt(hStart)}–${fmt(hEnd)}, ${daysText()}`
       : 'Chimes all day, every day';
@@ -1746,16 +1767,14 @@
       const box = $('slot' + k);
       box.classList.toggle('off', !slots[k].on);
       const srow = $('srow' + k);
-      if (slotsReady) slidePanel(srow, slots[k].on); else srow.hidden = !slots[k].on;
+      srow.hidden = false; srow.classList.toggle('off', !slots[k].on);
       box.querySelector('.switch').setAttribute('aria-checked', String(slots[k].on));
       srow.querySelector('select').value = slots[k].type;
     });
     // Sound tab: sounds only when Chime is on and at least one time is chosen.
     const anyOn = SLOTS.some(k => slots[k].on);
     const showSounds = on && anyOn;
-    if (slotsReady) { slidePanel($('soundList'), showSounds); slidePanel($('soundHint'), showSounds); slidePanel($('soundOff'), !showSounds); }
-    else { $('soundList').hidden = !showSounds; $('soundHint').hidden = !showSounds; $('soundOff').hidden = showSounds; }
-    $('soundOff').textContent = on ? 'Turn on a chime time in the Chime tab to choose its sound' : 'Turn on Chime to choose sounds';
+    $('soundList').hidden = false; $('soundHint').hidden = false; $('soundOff').hidden = true;
     $('tabChime').classList.toggle('lit', on);
     const onList = SLOTS.filter(k => slots[k].on).map(k => ({ 0: 'on the hour', 15: 'at quarter past', 30: 'at half past', 45: 'at quarter to' })[k]);
     // Written without commas: "Chimes on the hour and at quarter past and half past."
@@ -1820,12 +1839,10 @@
     });
   })();
 
-  let dialName = store.get('dialName', true);
+  const dialName = true;   // logo always shown; no setting in the menu
   function applyDialName() {
     document.body.classList.toggle('no-dial-name', !dialName);
-    $('nameSwitch').setAttribute('aria-checked', String(dialName));
   }
-  $('nameSwitch').addEventListener('click', () => { dialName = !dialName; store.set('dialName', dialName); applyDialName(); });
   applyDialName();
   function applySecs() {
     document.body.classList.toggle('no-secs', !showSecs);
