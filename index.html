@@ -518,7 +518,7 @@
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
     height: calc(var(--tabh) + env(safe-area-inset-bottom, 0px));
     padding: 0 max(env(safe-area-inset-left, 0px), .5rem) env(safe-area-inset-bottom, 0px) max(env(safe-area-inset-right, 0px), .5rem);
-    box-sizing: border-box; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    box-sizing: border-box; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
     background: var(--sheet); border-top: 1px solid var(--track);
   }
   body.bg-picture .tabbar { background: var(--panel); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
@@ -615,6 +615,14 @@
   body.tabbed .controls #fullBtn { min-width: 0; }
   body.tabbed .controls button { padding-left: 1.05rem; padding-right: 1.05rem; white-space: nowrap; }
   @media (max-width: 380px) { body.tabbed .controls button { font-size: .92rem; padding-left: .85rem; padding-right: .85rem; } }
+  /* About tab */
+  .about { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem; padding: 2rem .5rem 1rem; }
+  .about .qb-mark { width: 5.5rem; height: 5.5rem; }
+  .about .qb-word { font-size: 2.4rem; }
+  .about p { margin: 0; line-height: 1.5; }
+  .about-love { color: var(--ink); font-size: 1.05rem; }
+  .about-note { color: var(--muted); font-size: .9rem; }
+  .about-ver { color: var(--muted); font-size: .8rem; opacity: .8; margin-top: .5rem !important; }
 </style>
 </head>
 <body class="tabbed">
@@ -684,6 +692,7 @@
     </div>
   </div>
 
+  <p class="note" id="note">Two chimes on the hour, one on the half hour</p>
   <div class="controls">
     <button id="fullBtn">Full screen</button>
     <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
@@ -753,9 +762,6 @@
         </div>
         <p class="small-note" id="picNote">Pick a photo from your device. Dim it so the clock stays easy to read.</p>
       </div>
-      <div class="panel-foot">
-        <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (mm)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
-      </div>
     </section>
     <section class="group sheet-panel" id="panelSched" role="dialog" aria-labelledby="gHours" aria-hidden="true">
       <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gHours">Schedule</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
@@ -776,14 +782,24 @@
       <p class="slots-hint" id="hoursSummary">Chimes 09:00–17:00, Mon–Fri</p>
 
     </section>
+    <section class="group sheet-panel" id="panelAbout" role="dialog" aria-labelledby="gAbout" aria-hidden="true">
+      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gAbout">About</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
+      <div class="about">
+        <svg class="qb-mark" viewBox="0 0 200 200" aria-hidden="true"><rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="10"/><path d="M100 20 H140 A40 40 0 0 1 180 60 V100" fill="none" stroke="#E0A526" stroke-width="10" stroke-linecap="round"/><circle cx="100" cy="66" r="5" fill="#E0A526"/><path d="M78 124 C78 98 84 74 100 74 C116 74 122 98 122 124 Z" fill="#EEF1F6"/><rect x="72" y="121" width="56" height="8" rx="4" fill="#EEF1F6"/><circle cx="100" cy="138" r="6" fill="#E0A526"/></svg>
+        <div class="qb-word">Quarter<span>bell</span></div>
+        <p class="about-love">Made with love in Wolverhampton and Edinburgh</p>
+        <p class="about-note">Chimes only play while Quarterbell is open on screen</p>
+        <p class="about-ver">Beta version 1.0 (oo)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+      </div>
+    </section>
   </div>
 
   <nav class="tabbar" aria-label="Settings">
     <button class="tab" id="tabChime" data-panel="panelChime" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6"/><path d="M4 17h16"/><path d="M10 20a2 2 0 0 0 4 0"/><path d="M12 3v2"/></svg><span>Chime</span></button>
     <button class="tab" id="tabLook" data-panel="panelLook" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v4l3 2"/></svg><span>Appearance</span></button>
     <button class="tab" id="tabSched" data-panel="panelSched" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16"/><path d="M9 3v4M15 3v4"/></svg><span>Schedule</span></button>
+    <button class="tab" id="tabAbout" data-panel="panelAbout" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 7.6v.1"/></svg><span>About</span></button>
   </nav>
-  <p class="note" id="note">Two chimes on the hour, one on the half hour</p>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
 <div class="sheet" id="installSheet" hidden>
