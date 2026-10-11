@@ -598,6 +598,18 @@
     bottom: calc(var(--tabh) + env(safe-area-inset-bottom, 0px) + .6rem);
     border-radius: 1.4rem !important;
   }
+  /* iOS-style Back button on the left of each panel */
+  .panel-head { grid-template-columns: 5.5rem 1fr 5.5rem; }
+  .panel-close {
+    grid-column: 1; grid-row: 1; justify-self: start; width: auto; height: 44px; padding: 0 .4rem 0 0;
+    border-radius: 0; display: flex; align-items: center; gap: .1rem;
+    color: var(--brass); font-size: 1.05rem; font-weight: 500;
+  }
+  .panel-close svg { width: 26px; height: 26px; stroke-width: 2.4; stroke-linejoin: round; margin-left: -.4rem; }
+  .panel-head .group-title { grid-row: 1; }
+  body.tabbed .sheet-panel { text-align: left; }   /* centring is for the main screen only */
+  body.tabbed .sheet-panel .group-title { text-align: center; }
+  .sheet-panel.open.slide-out { transform: translateX(105%); opacity: .6; transition: transform .32s cubic-bezier(.4, 0, .6, 1), opacity .32s ease; }
 </style>
 </head>
 <body class="tabbed">
@@ -674,7 +686,7 @@
 
   <div class="settings">
     <section class="group sheet-panel" id="panelChime" role="dialog" aria-labelledby="gSound" aria-hidden="true">
-      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gSound">Chime</h2><button class="panel-close" type="button" aria-label="Close Chime"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
+      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gSound">Chime</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
       <div class="row">
         <span class="row-label" id="chimesLabel"><span id="chimesState">Chime</span></span>
         <button class="switch" id="toggle" role="switch" aria-checked="false" aria-labelledby="chimesLabel"></button>
@@ -691,13 +703,13 @@
       </div>
     </section>
     <section class="group sheet-panel" id="panelSound" role="dialog" aria-labelledby="gSoundPick" aria-hidden="true">
-      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gSoundPick">Sound</h2><button class="panel-close" type="button" aria-label="Close Sound"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
+      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gSoundPick">Sound</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
       <p class="slots-hint" id="soundHint">Choose a sound for each chime</p>
       <div class="slots" id="soundList"></div>
       <p class="slots-hint" id="soundOff" hidden>Turn on Chime to choose sounds</p>
     </section>
     <section class="group sheet-panel" id="panelLook" role="dialog" aria-labelledby="gAppearance" aria-hidden="true">
-      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gAppearance">Appearance</h2><button class="panel-close" type="button" aria-label="Close Appearance"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
+      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gAppearance">Appearance</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
       <div class="row">
         <span class="row-label" id="secsLabel">Show seconds</span>
         <button class="switch" id="secsSwitch" role="switch" aria-checked="true" aria-labelledby="secsLabel"></button>
@@ -743,7 +755,7 @@
       </div>
     </section>
     <section class="group sheet-panel" id="panelSched" role="dialog" aria-labelledby="gHours" aria-hidden="true">
-      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gHours">Schedule</h2><button class="panel-close" type="button" aria-label="Close Schedule"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
+      <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gHours">Schedule</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
       <div class="row">
         <span class="row-label" id="hoursLabel" style="white-space:nowrap">Chime all day, every day</span>
         <button class="switch" id="hoursSwitch" role="switch" aria-checked="false" aria-labelledby="hoursLabel"></button>
@@ -772,7 +784,7 @@
   <p class="note" id="note">Two chimes on the hour, one on the half hour<span class="keep">Chimes only play when it is on screen</span></p>
   <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
   <div class="main-foot">
-    <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (ff)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+    <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (hh)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
   </div>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
@@ -1711,7 +1723,19 @@
   }
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
     showPanel(openPanel === t.dataset.panel ? null : t.dataset.panel)));
-  document.querySelectorAll('.panel-close').forEach(b => b.addEventListener('click', () => showPanel(null)));
+  // Back slides the panel off to the right, like going back on iPhone.
+  function backOut(p) {
+    if (calmMotion) { showPanel(null); return; }
+    p.classList.add('slide-out');
+    setTimeout(() => {
+      p.style.transition = 'none';
+      showPanel(null);
+      p.classList.remove('slide-out');
+      void p.offsetWidth;
+      p.style.transition = '';
+    }, 330);
+  }
+  document.querySelectorAll('.panel-close').forEach(b => b.addEventListener('click', () => backOut(b.closest('.sheet-panel'))));
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && openPanel && !document.querySelector('.sheet:not([hidden])')) showPanel(null); });
   // Swipe a panel down by its top bar to close it.
   document.querySelectorAll('.sheet-panel').forEach(p => {
