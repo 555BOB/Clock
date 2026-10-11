@@ -589,6 +589,15 @@
   body.tabbed:not(.full):has(#installBtn:not([hidden])) .dial {
     width: min(86vw, 28rem, calc(100svh - var(--tabh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 25.5rem));
   }
+  /* Main screen: every line of text centred */
+  body.tabbed main, body.tabbed main .note, body.tabbed .main-foot, body.tabbed .main-foot p,
+  body.tabbed .clock-logo, body.tabbed .note .keep { text-align: center; margin-left: auto; margin-right: auto; }
+  body.tabbed main .note, body.tabbed .main-foot { width: 100%; max-width: 24rem; }
+  /* Panels: rounded at the bottom like the top, floating just above the tab bar */
+  .sheet-panel {
+    bottom: calc(var(--tabh) + env(safe-area-inset-bottom, 0px) + .6rem);
+    border-radius: 1.4rem !important;
+  }
 </style>
 </head>
 <body class="tabbed">
@@ -763,18 +772,7 @@
   <p class="note" id="note">Two chimes on the hour, one on the half hour<span class="keep">Chimes only play when it is on screen</span></p>
   <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
   <div class="main-foot">
-    <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (dd)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
-    <div class="brand-foot">
-      <svg class="qb-mark" viewBox="0 0 200 200" aria-hidden="true">
-        <rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#2E3380" stroke-width="10"/>
-        <path d="M100 20 H140 A40 40 0 0 1 180 60 V100" fill="none" stroke="#E0A526" stroke-width="10" stroke-linecap="round"/>
-        <circle cx="100" cy="66" r="5" fill="#E0A526"/>
-        <path d="M78 124 C78 98 84 74 100 74 C116 74 122 98 122 124 Z" fill="#EEF1F6"/>
-        <rect x="72" y="121" width="56" height="8" rx="4" fill="#EEF1F6"/>
-        <circle cx="100" cy="138" r="6" fill="#E0A526"/>
-      </svg>
-      <div class="qb-word">Quarter<span>bell</span></div>
-    </div>
+    <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (ff)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
   </div>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
