@@ -790,7 +790,7 @@
     <button id="installBtn" class="install-btn" hidden>Add to Home Screen</button>
   </div>
   <div class="main-foot">
-    <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (ii)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+    <p class="note version" style="opacity:.6;font-size:.75rem">Beta version 1.0 (jj)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
   </div>
 </main>
 <button class="exit-full" id="exitFull">Show controls</button>
@@ -1743,20 +1743,39 @@
   }
   document.querySelectorAll('.panel-close').forEach(b => b.addEventListener('click', () => backOut(b.closest('.sheet-panel'))));
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && openPanel && !document.querySelector('.sheet:not([hidden])')) showPanel(null); });
-  // Swipe a panel down by its top bar to close it.
+  // Swipe a panel down to close it: from its top bar, or from anywhere in it
+  // once it's scrolled to the top (scrolling the options still works as normal).
   document.querySelectorAll('.sheet-panel').forEach(p => {
-    const h = p.querySelector('.panel-head'); let y0 = null, dy = 0;
-    h.addEventListener('touchstart', e => { y0 = e.touches[0].clientY; dy = 0; p.style.transition = 'none'; }, { passive: true });
-    h.addEventListener('touchmove', e => {
-      if (y0 === null) return;
-      dy = Math.max(0, e.touches[0].clientY - y0);
-      p.style.transform = `translateY(${dy}px)`;
+    let y0 = null, x0 = 0, dy = 0, t0 = 0, decided = false, dragging = false;
+    p.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1 || e.target.closest('input[type=range]')) { y0 = null; return; }
+      y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; t0 = Date.now();
+      decided = false; dragging = false;
     }, { passive: true });
-    h.addEventListener('touchend', () => {
-      p.style.transition = '';
-      if (dy > 90) showPanel(null); else p.style.transform = '';
-      y0 = null;
-    });
+    p.addEventListener('touchmove', e => {
+      if (y0 === null) return;
+      const y = e.touches[0].clientY, x = e.touches[0].clientX;
+      dy = y - y0;
+      if (!decided) {
+        if (Math.abs(dy) < 6 && Math.abs(x - x0) < 6) return;
+        decided = true;
+        dragging = dy > 0 && Math.abs(dy) > Math.abs(x - x0) && p.scrollTop <= 0;
+        if (dragging) p.style.transition = 'none';
+      }
+      if (!dragging) return;
+      e.preventDefault();
+      p.style.transform = `translateY(${Math.max(0, dy)}px)`;
+    }, { passive: false });
+    const end = () => {
+      if (dragging) {
+        p.style.transition = '';
+        const fast = dy > 40 && dy / Math.max(1, Date.now() - t0) > 0.5;
+        if (dy > 110 || fast) showPanel(null); else p.style.transform = '';
+      }
+      y0 = null; dragging = false;
+    };
+    p.addEventListener('touchend', end);
+    p.addEventListener('touchcancel', end);
   });
 
   new MutationObserver(() => { if (document.body.classList.contains('full') && openPanel) showPanel(null); })
