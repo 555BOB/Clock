@@ -669,6 +669,21 @@
     body.full .dial { width: min(70vw, calc(100svh - 5rem)); }
   }
   .about-top { display: flex; flex-direction: column; align-items: center; gap: .75rem; padding-top: 1rem; text-align: center; }
+  /* Digital time sized from the clock face itself, so it always fits inside the dashes */
+  .dial { container-type: inline-size; }
+  @supports (width: 1cqi) {
+    .time { font-size: 23cqi; }
+    body.full .time { font-size: 23cqi; }
+  }
+  /* Phone on its side: two equal halves, clock centred in the left, details centred in the right */
+  @media (orientation: landscape) and (max-height: 520px) {
+    body.tabbed:not(.full) .clock-pane { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 1.5rem; }
+    body.tabbed:not(.full) .dial { justify-self: center; align-self: center; }
+    body.tabbed:not(.full) .clock-brand { align-self: start; }
+    body.tabbed:not(.full) #note { align-self: center; }
+    body.tabbed:not(.full) .controls { align-self: end; }
+    body.tabbed:not(.full) main { max-width: none; padding-left: max(env(safe-area-inset-left, 0px), 1.25rem); padding-right: max(env(safe-area-inset-right, 0px), 1.25rem); }
+  }
 </style>
 </head>
 <body class="tabbed">
@@ -840,7 +855,7 @@
         </div>
         <div class="about-bottom">
         <p class="about-note">Chimes only play while Quarterbell is open on screen</p>
-        <p class="about-ver">Beta version 1.0 (uu)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+        <p class="about-ver">Beta version 1.0 (vv)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
         </div>
       </div>
     </section>
