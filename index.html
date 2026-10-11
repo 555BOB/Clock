@@ -404,7 +404,7 @@
   .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: .3rem; }
   .days button { padding: .5rem 0; font-size: .85rem; border-radius: .6rem; min-width: 0; }
   .days button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-  .schedule[hidden] { display: none; }
+  .schedule[hidden], #hoursRow[hidden] { display: none; }
   .schedule { transition: opacity .3s ease; }
   .schedule.locked { opacity: .4; }
   .schedule.locked select, .schedule.locked button { cursor: default; }
@@ -703,7 +703,7 @@
     <section class="group sheet-panel" id="panelChime" role="dialog" aria-labelledby="gSound" aria-hidden="true">
       <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gSound">Chime</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
       <div class="row">
-        <span class="row-label" id="chimesLabel"><span id="chimesState">Chime</span></span>
+        <span class="row-label" id="chimesLabel"><span id="chimesState">Chimes are off</span></span>
         <button class="switch" id="toggle" role="switch" aria-checked="false" aria-labelledby="chimesLabel"></button>
       </div>
       <p class="slots-hint" id="slotsLabel" hidden>Choose when to chime and the sound for each</p>
@@ -765,7 +765,7 @@
     </section>
     <section class="group sheet-panel" id="panelSched" role="dialog" aria-labelledby="gHours" aria-hidden="true">
       <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gHours">Schedule</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
-      <div class="row">
+      <div class="row" id="hoursRow">
         <span class="row-label" id="hoursLabel" style="white-space:nowrap">Chime all day, every day</span>
         <button class="switch" id="hoursSwitch" role="switch" aria-checked="false" aria-labelledby="hoursLabel"></button>
       </div>
@@ -789,7 +789,7 @@
         <div class="qb-word">Quarter<span>bell</span></div>
         <p class="about-love">Made with love in Wolverhampton and Edinburgh</p>
         <p class="about-note">Chimes only play while Quarterbell is open on screen</p>
-        <p class="about-ver">Beta version 1.0 (oo)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+        <p class="about-ver">Beta version 1.0 (qq)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
       </div>
     </section>
   </div>
@@ -1123,7 +1123,7 @@
   async function setOn(value) {
     on = value;
     audio();
-    $('chimesState').textContent = 'Chime';
+    $('chimesState').textContent = on ? 'Chimes are on' : 'Chimes are off';
     $('toggle').setAttribute('aria-checked', String(on));
     slidePanel($('slots'), on);   // chime boxes show only while chimes are on
     slidePanel($('slotsLabel'), on); // and the instruction line
@@ -1693,7 +1693,9 @@
     $('hoursSwitch').setAttribute('aria-checked', String(!hoursOn));   // on = chimes all day, every day
     // Times and days always show; with "all day, every day" on they're greyed out
     // and show the whole day (00:00–23:59, every day). Your own times are kept for later.
-    $('schedule').hidden = false;
+    // With chimes off, the schedule options tuck away (like the Chime tab) and just say so.
+    if (hoursReady) { slidePanel($('hoursRow'), on); slidePanel($('schedule'), on); }
+    else { $('hoursRow').hidden = !on; $('schedule').hidden = !on; }
     $('schedule').classList.toggle('locked', !hoursOn);
     $('schedule').querySelectorAll('select, button').forEach(el => { el.disabled = !hoursOn; });
     // The sentence shows with the times, or on its own to say chimes are off.
@@ -1702,7 +1704,7 @@
     hoursReady = true;
     $('hoursStart').value = hoursOn ? hStart : 1; $('hoursEnd').value = hoursOn ? hEnd : 0;
     $('days').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(hoursOn ? days[+b.dataset.day] : true)));
-    $('hoursSummary').textContent = !on ? 'Chimes are off'
+    $('hoursSummary').textContent = !on ? 'Chimes are off. Turn them on in the Chime tab to set a schedule'
       : hoursOn ? `Chimes ${fmt(hStart)}–${fmt(hEnd)}, ${daysText()}`
       : 'Chimes all day, every day';
   }
