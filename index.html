@@ -416,7 +416,7 @@
   .schedule.locked { opacity: .4; }
   .schedule.locked select, .schedule.locked button { cursor: default; }
   .note .keep { display: block; }
-  .slots[hidden], #earlyRow[hidden] { display: none; }
+  .slots[hidden], #earlyRow[hidden], #mixRow[hidden] { display: none; }
   .schedule { display: flex; flex-direction: column; gap: .75rem; }
   .row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   .row-label { font-size: 1rem; }
@@ -801,6 +801,10 @@
           <button id="earlyMore" aria-label="10 seconds more">+</button>
         </div>
       </div>
+      <div class="row" id="mixRow" hidden>
+        <span class="row-label" id="mixLabel">Play over music</span>
+        <button class="switch" id="mixSwitch" role="switch" aria-checked="true" aria-labelledby="mixLabel"></button>
+      </div>
     </section>
     <section class="group sheet-panel" id="panelLook" role="dialog" aria-labelledby="gAppearance" aria-hidden="true">
       <div class="panel-head"><span class="grab" aria-hidden="true"></span><h2 class="group-title" id="gAppearance">Appearance</h2><button class="panel-close" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button></div>
@@ -888,7 +892,7 @@
         </div>
         <div class="about-bottom">
         <p class="about-note">Chimes only play while Quarterbell is open on screen</p>
-        <p class="about-ver">Beta version 1.0 (yy)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
+        <p class="about-ver">Beta version 1.0 (zz)<br>© 2026 Ahbaab Hussain · All rights reserved</p>
         </div>
       </div>
     </section>
@@ -1135,9 +1139,17 @@
   player.preload = 'auto';
   let ctx = null, playerReady = false;
 
+  // "Play over music" on: chimes mix with whatever else is playing (music, podcasts)
+  // instead of stopping it. iPhone then follows the Ring/Silent switch for chimes.
+  // Off: chimes play even in silent mode, but pause other audio while they sound.
+  let mixAudio = store.get('mixAudio', true);
   function setSession() {
-    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+    try { if (navigator.audioSession) navigator.audioSession.type = mixAudio ? 'ambient' : 'playback'; } catch (e) {}
   }
+  setSession();
+  function applyMix() { $('mixSwitch').setAttribute('aria-checked', String(mixAudio)); }
+  $('mixSwitch').addEventListener('click', () => { mixAudio = !mixAudio; store.set('mixAudio', mixAudio); setSession(); applyMix(); });
+  applyMix();
 
   // Call from inside a tap.
   function audio() {
@@ -1228,6 +1240,7 @@
     slidePanel($('slots'), on);   // chime boxes show only while chimes are on
     slidePanel($('slotsLabel'), on); // and the instruction line
     slidePanel($('earlyRow'), on); // and Chime earlier
+    slidePanel($('mixRow'), on);   // and Play over music
     applySlots();                  // refresh the summary at the bottom
     applyHours();                  // and the one in the Schedule box
     if (on) { lastKey = currentKey(chimeTime(new Date())); keepAwake(); }
